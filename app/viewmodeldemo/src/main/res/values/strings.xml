@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">ViewModelDemo</string>
+    <string name="plus_one_text">Plus One</string>
+    <string name="plus_two_text">Plus Two</string>
+    <string name="show_number_default">--</string>
+    <string name="jump_button_text">Jump to Next Activity</string>
+    <string name="fragment01_text">This is DemoFragment01</string>
+    <string name="jump_button_andorid_view_model_text">Jump To Next Activity</string>
+    <string name="fragment02_text">This is DemoFragment02</string>
+    <string name="shared_fragment01_button_text">Click To Fragment01</string>
+    <string name="shard_fragment02_button_text">Click To Fragment02</string>
+    <string name="jump_button_shared_view_model">Jump To Next</string>
+</resources>

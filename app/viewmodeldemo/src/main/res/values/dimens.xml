@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="flow_horizontal_gap_size">30dp</dimen>
+    <dimen name="flow_vertical_gap_size" >20dp</dimen>
+    <dimen name="shared_view_model_flow_horizontal_gap" >20dp</dimen>
+</resources>
