@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/drawerFragment02"
+        android:title="drawerFragment02"
+        android:icon="@drawable/ic_baseline_looks_5_24"
+        android:orderInCategory="2"/>
+    <item
+        android:id="@+id/drawerFragment01"
+        android:title="drawerFragment01"
+        android:icon="@drawable/ic_baseline_looks_4_24"
+        android:orderInCategory="1"/>
+    <item
+        android:id="@+id/drawerFragment03"
+        android:title="drawerFragment03"
+        android:icon="@drawable/ic_baseline_looks_6_24"
+        android:orderInCategory="3"/>
+</menu>

@@ -1,0 +1,20 @@
+<resources>
+    <string name="app_name">NavigationDemo</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="demo_fragment01">This is DemoFragment01</string>
+    <string name="demo_fragment02">This is DemoFragment02</string>
+    <string name="demo_fragment02_back_button_text">Back</string>
+    <string name="demo_fragment01_jump_button_text">Click To Jump</string>
+    <string name="deep_link_activity_text">This is DeepLink Activity</string>
+    <string name="deep_link_button_text">DeepLink</string>
+    <string name="deeplink_activity">DeepLink Activity</string>
+    <string name="demofragment02">DemoFragment02</string>
+    <string name="demofragment01">DemoFragment01</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="drawer_fragement01_text">DrawerFragment01</string>
+    <string name="drawer_fragement02_text">DrawerFragment02</string>
+    <string name="drawer_fragement03_text">DrawerFragment03</string>
+    <string name="second_page_text">SecondPageFragment</string>
+    <string name="third_page_fragment">ThirdPageFragment</string>
+</resources>
