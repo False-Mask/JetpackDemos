@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">RoomDemo</string>
+    <string name="jump_button_text">Jump</string>
+    <string name="one_to_one_insert_owner">Insert Owner</string>
+    <string name="one_to_one_insert_dog">Insert Dog</string>
+    <string name="one_to_one_get_dog_and_owner">Get Dog And Owner</string>
+</resources>

@@ -1,0 +1,117 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 1,
+    "identityHash": "ebc50d53a5281392fb0270bca99e19d9",
+    "entities": [
+      {
+        "tableName": "Dog",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`dogId` INTEGER NOT NULL, `dogOwnerId` INTEGER NOT NULL, `name` TEXT NOT NULL, `cuteness` INTEGER NOT NULL, `barkVolume` INTEGER NOT NULL, `breed` TEXT NOT NULL, PRIMARY KEY(`dogId`))",
+        "fields": [
+          {
+            "fieldPath": "dogId",
+            "columnName": "dogId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "dogOwnerId",
+            "columnName": "dogOwnerId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "cuteness",
+            "columnName": "cuteness",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "barkVolume",
+            "columnName": "barkVolume",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "breed",
+            "columnName": "breed",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "columnNames": [
+            "dogId"
+          ],
+          "autoGenerate": false
+        },
+        "indices": [],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "Owner",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`ownerId` INTEGER NOT NULL, `name` TEXT NOT NULL, PRIMARY KEY(`ownerId`))",
+        "fields": [
+          {
+            "fieldPath": "ownerId",
+            "columnName": "ownerId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "columnNames": [
+            "ownerId"
+          ],
+          "autoGenerate": false
+        },
+        "indices": [],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "DogOwnerCrossRef",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`dogId` INTEGER NOT NULL, `ownerId` INTEGER NOT NULL, PRIMARY KEY(`dogId`, `ownerId`))",
+        "fields": [
+          {
+            "fieldPath": "dogId",
+            "columnName": "dogId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "ownerId",
+            "columnName": "ownerId",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "columnNames": [
+            "dogId",
+            "ownerId"
+          ],
+          "autoGenerate": false
+        },
+        "indices": [],
+        "foreignKeys": []
+      }
+    ],
+    "views": [],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'ebc50d53a5281392fb0270bca99e19d9')"
+    ]
+  }
+}

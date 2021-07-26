@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity">
+    <Button
+        android:id="@+id/button_get_all"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Get All"
+        android:textAllCaps="false"
+        app:layout_constraintBottom_toTopOf="@+id/button_load_all_by_ids"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/button_find_by_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Find By Name"
+        android:textAllCaps="false"
+        app:layout_constraintBottom_toTopOf="@+id/button_insert_all"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/button_load_all_by_ids" />
+
+    <Button
+        android:id="@+id/button_load_all_by_ids"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Load All By Ids"
+        android:textAllCaps="false"
+        app:layout_constraintBottom_toTopOf="@+id/button_find_by_name"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/button_get_all" />
+
+    <Button
+        android:id="@+id/button_insert_all"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Insert All"
+        android:textAllCaps="false"
+        app:layout_constraintBottom_toTopOf="@id/button_delete"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/button_find_by_name" />
+
+    <Button
+        android:id="@+id/button_delete"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Delete"
+        android:textAllCaps="false"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/button_insert_all" />
+
+    <Button
+        android:id="@+id/jump_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="28dp"
+        android:text="@string/jump_button_text"
+        android:textAllCaps="false"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/button_find_by_name"
+        app:layout_constraintTop_toTopOf="parent" />
+</androidx.constraintlayout.widget.ConstraintLayout>

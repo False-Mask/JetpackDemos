@@ -1,4 +1,4 @@
-# Jetpack
+Jetpack
 
 ![img](https://i.loli.net/2021/07/20/OM42k9NuhpxfUTG.png)
 
@@ -1589,13 +1589,13 @@ Tips：这里也阉割了Activity的传参。
 >   比如在Fragment中发送一条Notification，Notifaction承载一个由Navigation创建的PendingIntent
 >
 >   ```kotlin
->   
+>                   
 >   deep_link_button.setOnClickListener {
 >               val manager = NotificationManagerCompat.from(requireContext())
 >               manager.notify(notificationId++,createNotification())
->   
+>                   
 >           }
->   
+>                   
 >   //创建Notification
 >       private fun createNotification(): Notification {
 >           val notificationName = requireActivity().packageName
@@ -1604,11 +1604,11 @@ Tips：这里也阉割了Activity的传参。
 >                   notificationName, "DeepLinkChanner",
 >                   NotificationManager.IMPORTANCE_DEFAULT
 >               )
->   
+>                   
 >               val notificationManager =
 >                   requireActivity().getSystemService(NotificationManager::class.java)
 >               notificationManager.createNotificationChannel(channel)
->   
+>                   
 >           }
 >           return NotificationCompat.Builder(requireContext(), notificationName)
 >               .setSmallIcon(R.drawable.ic_launcher_foreground)
@@ -1685,16 +1685,16 @@ Tips：这里也阉割了Activity的传参。
 >   <!DOCTYPE html>
 >   <!DOCTYPE html>
 >   <html>
->   
+>                   
 >   <head>
 >       <title>跳转测试</title>
 >       <meta http-equiv="content-type" content="text/html">
 >   </head>
->   
+>                   
 >   <body>
 >   <a href="http://zhiqiangtu.com/1">点击跳转到app</a>
 >   </body>
->   
+>                   
 >   </html>
 >   ```
 >
@@ -1974,5 +1974,1580 @@ Navigation 组件包含 `NavigationUI` 类。此类包含多种静态方法，�
 
 
 
-#### Room
+### Room
 
+#### 1.什么是Room
+
+
+
+***Room 在 SQLite 上提供了一个抽象层，以便在充分利用 SQLite 的强大功能的同时，能够流畅地访问数据库。***
+
+
+
+#### 2.Room一览
+
+> Room 包含 3 个主要组件：
+>
+> - [**DataBase**](https://developer.android.google.cn/reference/androidx/room/Database)：包含数据库持有者，并作为应用已保留的持久关系型数据的底层连接的主要接入点。
+>
+>   使用 `@Database`注释的类应满足以下条件：
+>
+>   - 是扩展 `RoomDatabase`的抽象类。
+>   - 在注释中添加与数据库关联的实体列表。
+>   - 包含具有 0 个参数且返回使用 `@Dao`注释的类的抽象方法。
+>
+>   在运行时，您可以通过调用 `Room.databaseBuilder()`或 `Room.inMemoryDatabaseBuilder()` 获取 `Database`的实例。
+>
+>   
+>
+> - [**Entity**](https://developer.android.google.cn/training/data-storage/room/defining-data)：表示数据库中的表。
+>
+> - [**DAO**](https://developer.android.google.cn/training/data-storage/room/accessing-data)：包含用于访问数据库的方法。
+>
+> 关于与数据库的访问。
+>
+> - 应用使用 Room 数据库来获取与该数据库关联的数据访问对象 (DAO)。
+> - 然后，应用使用每个 DAO 从数据库中获取实体，然后再将对这些实体的所有更改保存回数据库中。
+> -  最后，应用使用实体来获取和设置与数据库中的表列相对应的值。
+>
+> <img src="https://gitee.com/False_Mask/pics/raw/master/PicsAndGifs/room_architecture.png" alt="img" style="zoom: 50%;" />
+>
+> **也就是说Room提供了DAO (Data Access  Objects)作为App和DataBase的中间人。**
+
+
+
+#### 3.Room的基本使用
+
+[参考自](https://developer.android.google.cn/training/data-storage/room)
+
+> Code Place：
+>
+> com/example/roomdemo/db，
+>
+> com/example/roomdemo/MainActivity.kt
+>
+> 
+>
+> - 添加依赖
+>
+>   ```groovy
+>   dependencies {
+>       def room_version = "2.3.0"
+>   	//运行时的依赖
+>       implementation("androidx.room:room-runtime:$room_version")
+>       //注解处理器
+>       annotationProcessor "androidx.room:room-compiler:$room_version"
+>
+>
+>       // To use Kotlin annotation processing tool (kapt)
+>       //这个也是注解处理器只不过时kotlin-kapt
+>       kapt("androidx.room:room-compiler:$room_version")
+>       // To use Kotlin Symbolic Processing (KSP)
+>       ksp("androidx.room:room-compiler:$room_version")
+>     
+>       // optional - Kotlin Extensions and Coroutines support for Room
+>       implementation("androidx.room:room-ktx:$room_version")
+>     
+>       // optional - RxJava2 support for Room
+>       implementation "androidx.room:room-rxjava2:$room_version"
+>     
+>       // optional - RxJava3 support for Room
+>       implementation "androidx.room:room-rxjava3:$room_version"
+>     
+>       // optional - Guava support for Room, including Optional and ListenableFuture
+>       implementation "androidx.room:room-guava:$room_version"
+>     
+>       // optional - Test helpers
+>       testImplementation("androidx.room:room-testing:$room_version")
+>   }
+>   ```
+> 
+>   这里我就使用了两个必要的一个是运行时的一个是注解处理器。
+> 
+>   ```
+>   	//如果使用kapt一定要加上，kotlin的注解处理插件都没kapt个锤锤。
+>   	id 'kotlin-kapt'
+>   	
+>   	//room
+>   	  def room_version = "2.3.0"
+>   	  implementation("androidx.room:room-runtime:$room_version")
+>   	  // To use Kotlin annotation processing tool (kapt)
+>   	  kapt("androidx.room:room-compiler:$room_version")
+>   ```
+> 
+> 
+> 
+> - 创建实体类Entity
+> 
+>   ```kotlin
+>   @Entity(tableName = "user_table")
+>   data class User(
+>       @PrimaryKey(autoGenerate = true) val uid: Int,
+>       @ColumnInfo(name = "first_name") val firstName: String?,
+>       @ColumnInfo(name = "last_name") val lastName: String?
+>   )
+>   ```
+>
+>   其中PrimaryKey是主键，我们可以通过这个主键直接从数据库中查询到该数据。一个表单中必须要有主键（没有为什么。
+>
+>   其实一个Entity表单其实就相当于一个Excel表格，比如上面的user_table就可以这样写
+>
+>   ![image-20210724172017331](https://gitee.com/False_Mask/jetpack-demos-pics/raw/master/PicsAndGifs/image-20210724172017331.png)
+>
+>   所以uId ，firstName，lastName每个变量都占据一列。ColumnInfo就是设置每列的属性。
+>
+> - 创建Dao
+>
+>   ```kotlin
+>   @Dao
+>   interface UserDao {
+>       @Query("SELECT * FROM user_table")
+>       fun getAll(): List<User>
+>
+>       @Query("SELECT * FROM user_table WHERE uid IN (:userIds)")
+>       fun loadAllByIds(userIds: IntArray): List<User>
+>
+>       @Query("SELECT * FROM user_table WHERE first_name LIKE :first AND last_name LIKE :last LIMIT 1")
+>       fun findByName(first: String, last: String): User
+>
+>       @Insert
+>       fun insertAll(vararg users: User)
+>
+>       @Delete
+>       fun delete(user: User)
+>   }
+>   ```
+>
+>   这个大家因该都能懂就不解释了。
+>
+> - 创建数据库DataBase
+>
+>   ```kotlin
+>   @Database(entities = arrayOf(User::class), version = 1)
+>   abstract class AppDatabase : RoomDatabase() {
+>       abstract fun userDao(): UserDao
+>       //单例。
+>       companion object{
+>           var instance:AppDatabase? = null
+>   
+>           @Synchronized
+>           fun getInstance(applicationContext: Context):AppDatabase {
+>               instance?.let {
+>                   return it
+>               }
+>               return Room.databaseBuilder(applicationContext,AppDatabase::class.java,
+>                   APP_DATABASE_NAME).build().apply {
+>                       instance = this
+>               }
+>           }
+>       }
+>   
+>   }
+>   ```
+>   
+>     有一点需要注意这个Database是抽象类。代码也很简单。
+>   
+>     然后就是在activity中使用（这代码写的有亿点烂。想必大家能懂意思。实际开发得用Google官方推荐的标准架构
+>   
+>   ​	<img src="https://gitee.com/False_Mask/jetpack-demos-pics/raw/master/PicsAndGifs/12972541-163a166f5f394065.png" alt="img" style="zoom: 50%;" />
+>
+>
+>   ```kotlin
+> 
+> 
+>   package com.example.roomdemo
+> 
+>   import androidx.appcompat.app.AppCompatActivity
+>   import android.os.Bundle
+>   import android.util.Log
+>   import androidx.lifecycle.lifecycleScope
+>   import com.example.roomdemo.db.AppDatabase
+>   import com.example.roomdemo.db.dao.UserDao
+>   import com.example.roomdemo.model.User
+>   import kotlinx.android.synthetic.main.activity_main.*
+>   import kotlinx.coroutines.Dispatchers
+>   import kotlinx.coroutines.launch
+>   import kotlin.math.log
+> 
+>   private const val TAG = "MainActivity"
+>   class MainActivity : AppCompatActivity() {
+>       lateinit var userDao:UserDao
+>       override fun onCreate(savedInstanceState: Bundle?) {
+>           super.onCreate(savedInstanceState)
+>           userDao = AppDatabase.getInstance(applicationContext).userDao()
+>           setContentView(R.layout.activity_main)
+>           setListeners()
+>       }
+> 
+>       private fun setListeners() {
+>           button_get_all.setOnClickListener {
+>               lifecycleScope.launch(Dispatchers.IO) {
+>                   val all = userDao.getAll()
+>                   all.forEach{
+>                       Log.e(TAG, "$it" )
+>                   }
+>               }
+>           }
+> 
+>           button_find_by_name.setOnClickListener {
+>               lifecycleScope.launch(Dispatchers.IO) {
+>                   val result = userDao.findByName("a","a")
+>                   Log.e(TAG, "$result" )
+>               }
+>           }
+> 
+>           button_load_all_by_ids.setOnClickListener {
+>               lifecycleScope.launch (Dispatchers.IO){
+>                   val result = userDao.loadAllByIds(intArrayOf(1,2,3,4))
+>                   result.forEach{
+>                       Log.e(TAG, "$it" )
+>                   }
+>               }
+>           }
+> 
+>           button_delete.setOnClickListener {
+>               lifecycleScope.launch(Dispatchers.IO) {
+>                   userDao.delete(User("a","a"))
+>               }
+>           }
+> 
+>           button_insert_all.setOnClickListener {
+>               lifecycleScope.launch(Dispatchers.IO){
+>                   userDao.insertAll(User("a","a"),
+>                       User("b","b"),
+>                       User("c","c"),
+>                       User("d","d"))
+>               }
+>           }
+>       }
+>   }
+>   ```
+>
+
+
+
+##### 注解详解
+
+对于基础的@DAO，@Database，@Entity我们已近有所了解。但是其实还存在一些比较常用的。（注意：Room的注解其实不算少，但是有很多的注解不是很常规，所以就暂时没必要花时间去学，以下只会对常用的注解进行较为详细的描述，不常用的就一笔带过。） 
+
+###### @Entity
+
+> ```kotlin
+> @Entity
+> data class User(
+>   @PrimaryKey var id: Int,
+>   var firstName: String?,
+>   var lastName: String?
+> )
+> ```
+>
+> 这个大家都熟吧。
+>
+> 其中有一点需要注意，如果你想将某个变量添加到数据库的表单中一定要满足以下两个条件中的一种
+>
+> 1.要么该数据为一个public变量
+>
+> 2.如果该数据是一个private变量，你得提供get,set方法。
+>
+> 
+>
+> **注意**：实体可以具有空的构造函数（如果相应的 [DAO](https://developer.android.google.cn/training/data-storage/room/accessing-data) 类可以访问保留的每个字段），也可以具有其参数包含的类型和名称与该实体中字段的类型和名称匹配的构造函数。Room 还可以使用完整或部分构造函数，例如仅接收部分字段的构造函数。
+>
+> 
+>
+> - 主键PrimaryKey的使用
+>
+>   **每个实体类至少要有一个主键**,主键可以通过对变量使用@PrimaryKey，于此同时还可以在中进行申明  @Entity(primaryKeys = arrayOf())（二选一即可）
+>
+>   比如这样
+>
+>   ```kotlin
+>    @Entity(primaryKeys = arrayOf("firstName", "lastName"))
+>       data class User(
+>           val firstName: String?,
+>           val lastName: String?
+>       )
+>   
+>   ```
+>
+>   有的时候我们可能懒得自己去生成主键，但是我们可以让Room自动帮我们生成，使用@PrimaryKey(autoGenerate=true)即可。
+>
+> - 指定表单名称
+>
+>   Entity是一个表单，我们可以自己定义表单的名称。只需要这样就行了（默认表单名称和实体类名是一致的）
+>
+>   ```kotlin
+>   @Entity(tableName = "users")
+>       data class User (
+>           // ...
+>       )
+>   ```
+>
+> - 指定变量名称
+>
+>   这里需要引入一个新的注解@ColumnInfo，这个注解是作用在实体类的成员属性上的，可以指定成员属性的一些信息。关于指定变量名称，与前面的指定表名称类似
+>
+>   ```kotlin
+>    @Entity(tableName = "users")
+>       data class User (
+>           @PrimaryKey val id: Int,
+>           @ColumnInfo(name = "first_name") val firstName: String?,
+>           @ColumnInfo(name = "last_name") val lastName: String?
+>       )
+>   ```
+>
+> - 忽略变量
+>
+>   **默认情况下，Room 会为实体中定义的每个字段创建一个列**。如果某个实体中有您**不想保留**的字段，则可以使用 **@Ignore **为这些字段添加注释，如以下代码段所示：
+>
+>   ```kotlin
+>    @Entity
+>       data class User(
+>           @PrimaryKey val id: Int,
+>           val firstName: String?,
+>           val lastName: String?,
+>           @Ignore val picture: Bitmap?
+>       )
+>   ```
+>
+>   如果实体**继承了父实体的字段**，则使用**@Entity**属性的 **ignoredColumns **属性通常会更容易：
+>
+>   ```kotlin
+>   open class User {
+>           var picture: Bitmap? = null
+>       }
+>   
+>       @Entity(ignoredColumns = arrayOf("picture"))
+>       data class RemoteUser(
+>           @PrimaryKey val id: Int,
+>           val hasVpn: Boolean
+>       ) : User()
+>   ```
+>
+> - 支持全文搜索
+>
+>   如果您的应用需要通过全文搜索 (FTS) 快速访问数据库信息，请使用虚拟表（使用 FTS3 或 FTS4为您的实体提供支持）。
+>
+>   如果在2.1.0以及更高版本中Room提供了 **@Fts3 或 @Fts4**注解，按理用处不大。这玩意因该是用于快速查找的，一般情况下手机上的数据应该不是很多的，所以用处不大。就跳过了。
+>
+>   需要了解的兄的[看这里](https://developer.android.google.cn/training/data-storage/room/defining-data#search)
+>
+> - 提供对Java AutoValue的支持
+>
+>   对Java的支持跟我Kotlin有啥关系。ha
+>
+>   稍微说一下，AutoValue是用于Java的实体类创建的，有的时候我们在创建对象的时候在构造函数会传入null值，这会为空指针埋下隐患，所以在初始化bean的成员变量的时候保险的方案是这样的。
+>
+>   ```kotlin
+>   AutoValue_User(String name, int age, String address) {
+>       if (name == null) {
+>         throw new NullPointerException("Null name");
+>       } else {
+>         this.name = name;
+>         this.age = age;
+>         if (address == null) {
+>           throw new NullPointerException("Null address");
+>         } else {
+>           this.address = address;
+>         }
+>       }
+>     }
+>   ```
+>
+> 
+>
+>   但是你有没有发现代码有点长，而且都是一些模板化的判空，所以Google的几个工程师就写了一个小的java实体类生成工具。也就是AutoValue。在kt中无疑data class是更好的解决方案。
+>
+>   附上官方的代码
+>
+>   ```java
+>   @AutoValue
+>       @Entity
+>       public abstract class User {
+>           // Supported annotations must include `@CopyAnnotations`.
+>           @CopyAnnotations
+>           @PrimaryKey
+>           public abstract long getId();
+> 
+>           public abstract String getFirstName();
+>           public abstract String getLastName();
+> 
+>           // Room uses this factory method to create User objects.
+>           public static User create(long id, String firstName, String lastName) {
+>               return new AutoValue_User(id, firstName, lastName);
+>           }
+>       }
+>   ```
+>
+>   其实还有很多东西都没讲，有时间可以自己下来研究。没时间就算了，这些也差不多够用了。/狗头
+
+
+
+###### @DAO
+
+![image-20210725175833946](https://gitee.com/False_Mask/jetpack-demos-pics/raw/master/PicsAndGifs/image-20210725175833946.png)
+
+需要注意的是DAO是抽象的东西，它可以用接口写，其实用抽象类写也是可以的，他的实现是Room通过注解处理器自动生成的。（只不过通常都是用的接口写，可能代码稍微少一点，方法可以不写abstract）
+
+```kotlin
+@Dao
+abstract class UserDao {
+    @Query("SELECT * FROM user_table")
+    abstract fun getAll(): List<User>
+
+    @Query("SELECT * FROM user_table WHERE uid IN (:userIds)")
+    abstract fun loadAllByIds(userIds: IntArray): List<User>
+
+    @Query("SELECT * FROM user_table WHERE first_name LIKE :first AND last_name LIKE :last LIMIT 1")
+    abstract fun findByName(first: String, last: String): User
+
+    @Insert
+    abstract fun insertAll(vararg users: User)
+
+    @Delete
+    abstract fun delete(user: User)
+}
+```
+
+
+
+下面的是Room未我们生成的DAO的实现类
+
+可以在：build/generated/source/kapt/debug/....下查找代码
+
+![image-20210725125549434](https://gitee.com/False_Mask/jetpack-demos-pics/raw/master/PicsAndGifs/image-20210725125549434.png)
+
+
+
+我们知道数据库的操作分为4种：
+
+**增，删，改，查**
+
+分别对应DAO的注解**@Insert，@Delete，@Update，@Query**。
+
+其中增，删，改封装的比较好，我们可以不需要写任何的sql语句。
+
+但是**查就不一样了**，因为**查询的方法是多样的**，你可以给出一个范围查询，也可能只是一个确切的值进行查询，这个无法很好的封装。没办法，只好和sql打交道了。你也能从下面的代码中发现。（于此同时@Query注解的能力是非常强的它能完成查询，但是其他的增，删，改其实也能。但这需要sql的基础了。）
+
+- DAO注解的使用
+
+  @Insert标注的方法内传入的参数必须是@Entity标注的实体类。（除此之外别忘了还得在Database中声明）
+
+  - @Insert
+
+    > 
+    >
+    > ```kotlin
+    > @Dao
+    >  interface MyDao {
+    >      @Insert(onConflict = OnConflictStrategy.REPLACE)
+    >      fun insertUsers(vararg users: User)
+    > 
+    >      @Insert
+    >      fun insertBothUsers(user1: User, user2: User)
+    > 
+    >      @Insert
+    >      fun insertUsersAndFriends(user: User, friends: List<User>)
+    >  }
+    > ```
+    >
+    > 上述方法了解就够了。通常情况下我们很少整那么多花样。一般要么插入一个实体类，要么插入一个集合。
+    >
+    > @Insert标记的注解其实是可以有返回值的
+    >
+    > ![image-20210725210243505](https://gitee.com/False_Mask/jetpack-demos-pics/raw/master/PicsAndGifs/image-20210725210243505.png)
+    >
+    > 如果插入的参数是一个实体类放回值要么没有，要么就是Long，这个long的含义是SQL中的rawid
+    >
+    > 而SQL里面的rawid**好像是**INTEGER类型的PrimaryKey(因为Primarykey可以是SQL的TEXT类也就是String类)
+    >
+    > ![image-20210725210816452](https://gitee.com/False_Mask/jetpack-demos-pics/raw/master/PicsAndGifs/image-20210725210816452.png)
+    >
+    > 如果@Insert方法传入的是一个集合，那么返回的值可以是List<Long>，这List<Long>也就是rawid的集合。
+    >
+    > @Insert注解里面有两个值一个是 entity ，一个是onConflict。
+    >
+    > - entity
+    >
+    > 先看看大概长什么样吧
+    >
+    > ```java
+    > @Entity
+    >  public class Playlist {
+    >    @PrimaryKey(autoGenerate = true)
+    >    long playlistId;
+    > 
+    >    String name;
+    >    @Nullable
+    >    String description
+    > 
+    >    @ColumnInfo(defaultValue = "normal")
+    >    String category;
+    >    @ColumnInfo(defaultValue = "CURRENT_TIMESTAMP")
+    >    String createdTime;
+    >    @ColumnInfo(defaultValue = "CURRENT_TIMESTAMP")
+    >    String lastModifiedTime;
+    >  }
+    > 
+    >  public class NameAndDescription {
+    >    String name;
+    >    String description
+    >  }
+    > 
+    >  @Dao
+    >  public interface PlaylistDao {
+    >    @Insert(entity = Playlist.class)
+    >    public void insertNewPlaylist(NameAndDescription nameDescription);
+    >  }
+    > ```
+    >
+    > 我们可以看出Playlist有3个变量是默认生成的，一个变量是primaryKey并设置了自动生成，也就是说如果我们需要插入一个Playlist变量到数据库，只需要给出name和description变量即可。
+    >
+    > 为了方便我们插入Playlist，我们可以把name和description声明为一个新的类，然后把新的类作为参数传入到@Insert标记的方法中。最后声明entity =  Playlist.class这个声明的意思是传入的参数是Playlist的一部分。这样实际插入的是Playlist。**总感觉有点画蛇添足。**
+    >
+    > - onConflict
+    >
+    >   看看长什么样。
+    >
+    >   ```kotlin
+    >   @Insert(onConflict = OnConflictStrategy.ABORT)
+    >   abstract fun insertAll(vararg users: User):List<Long>
+    >   ```
+    >
+    >   在了解任何处理插入冲突之前先了解什么是插入冲突。
+    >
+    >   我们之前讲过PrimaryKey，一个Entity必须要有一个PrimaryKey。因为PrimaryKey有特殊的用处。**PrimaryKey是区分不同行的重要标准。**
+    >
+    >   回归到插入冲突，前面说了PrimaryKey是判断不同行的标准。试想一个情景。
+    >
+    >   如果我取消了PrimaryKey的autoGenerate，当我插入数据的时候，两个数据PrimaryKey都是默认指定的2就像这样。
+    >
+    >   ```kotlin
+    >   @Entity(tableName = "user_table")
+    >   data class User(
+    >       @ColumnInfo(name = "first_name") val firstName: String?,
+    >       @ColumnInfo(name = "last_name") val lastName: String?
+    >   ){
+    >       @PrimaryKey(/*autoGenerate = true*/) var uid:Int = 2
+    >       override fun toString(): String {
+    >           return "$uid-$firstName-$lastName"
+    >       }
+    >   }
+    >   ```
+    >
+    >   没错这样就发生了插入冲突。
+    >
+    >   现在我们知道了插入冲突，那你认为Room会怎么做？答案是app Crash了
+    >
+    >   ![image-20210725223734448](https://gitee.com/False_Mask/jetpack-demos-pics/raw/master/PicsAndGifs/image-20210725223734448.png)
+    >
+    >   UNIQUE constraint failed。（也就是Primarykey是唯一的）
+    >
+    >   Room给出处理插入冲突的默认方式就是OnConflictStrategy.ABORT也即是回滚，抛异常。
+    >
+    >   除此之外还有两种方式 
+    >
+    >   - OnConflictStrategy.IGNORE 忽略掉，就当什么都没发生。
+    >
+    >   - OnConflictStrategy.REPLACE 将新的值替换掉旧的值。
+    >
+    >     比如我先插入了 User(PrimaryKey = 1,data = "1")
+    >
+    >     然后又插入了User(PrimaryKey = 1,data = "2")
+    >
+    >     那么Room会将User(PrimaryKey = 1,data = "2")替换掉User(PrimaryKey = 1,data = "2")所对应的位置。
+
+  - @Updata
+
+    > 从Updata这个单词就能看出这个是用于更改某一行数据的，和@Insert基本上是一致的。。连文档的例子都是一样的。我属实有些懵了。
+    >
+    > @Update标记的方法接受一个实体对象，或者是一个实体集合。代码如下
+    >
+    > ```kotlin
+    > @Dao
+    > interface UserDao {
+    >  @Update
+    >  fun updateUsers(vararg users: User)
+    > }
+    > ```
+    >
+    > @Updata依然是靠的PrimaryKey匹配行。
+    >
+    > 不过多阐述了。就当是@Insert得了ha。
+
+  - @Delete
+
+    > @Delete依然是**通过PrimaryKey索引行**（**也就是说其他成员变量是否一致并不重要**）的，依然与@Insert有点类似，不过不一样的是索引到了对应行是删除，而不是更新插入啥的了。方法参数也是一样的实体类，实体集合
+    >
+    > ```kotlin
+    > @Dao
+    > interface UserDao {
+    >  @Delete
+    >  fun deleteUsers(vararg users: User)
+    > }
+    > ```
+    >
+    > 还有@Delete标记的方法的返回值可以是Unit也可以是Int。
+    >
+    > Int表示成功删除的数据的个数。注解内的有个entity变量，前面其实以及讲过。	
+    >
+    > 通常情况下如果使用@Delete得先通过@Query查询匹配结果，然后再删除。当然也可以直接使用@Query删除。反正@Query啥都能干。
+
+  - @Query
+
+    Query的参数很简单，就一个String，而这个String是用于与SQL交互的。可能下列的代码看不太懂，不给知道能这么写就好了。
+
+    - 简单查询
+
+      ```kotlin
+        @Dao
+          interface MyDao {
+              //查询加载所有User
+              @Query("SELECT * FROM user")
+              fun loadAllUsers(): Array<User>
+          }
+      ```
+
+    - 传递参数给Query
+
+      ```kotlin
+      @Dao
+          interface MyDao {
+              //查询满足条件age大于传入阐述minAge的所有User
+              @Query("SELECT * FROM user WHERE age > :minAge")
+              fun loadAllUsersOlderThan(minAge: Int): Array<User>
+          }
+      ```
+
+      上面的例子只传入了单个参数，其实还可以传入多个参数。
+
+      ```kotlin
+      @Dao
+          interface MyDao {
+              @Query("SELECT * FROM user WHERE age BETWEEN :minAge AND :maxAge")
+              fun loadAllUsersBetweenAges(minAge: Int, maxAge: Int): Array<User>
+      
+              @Query("SELECT * FROM user WHERE first_name LIKE :search " +
+                     "OR last_name LIKE :search")
+              fun findUserWithName(search: String): List<User>
+          }
+      ```
+
+    - 返回列的子集
+
+      ```kotlin
+      data class NameTuple(
+              @ColumnInfo(name = "first_name") val firstName: String?,
+              @ColumnInfo(name = "last_name") val lastName: String?
+          )
+      
+      //这个表明我们只返回所有user的first_name和last_name
+       @Dao
+          interface MyDao {
+              @Query("SELECT first_name, last_name FROM user")
+              fun loadFullName(): List<NameTuple>
+          }
+      ```
+
+    - 传递参数的集合
+
+      ```kotlin
+      @Dao
+          interface MyDao {
+              @Query("SELECT first_name, last_name FROM user WHERE region IN (:regions)")
+              fun loadUsersFromRegions(regions: List<String>): List<NameTuple>
+          }
+      ```
+
+    - 直接光标访问
+
+      ```kotlin
+       @Dao
+          interface MyDao {
+              @Query("SELECT * FROM user WHERE age > :minAge LIMIT 5")
+              fun loadRawUsersOlderThan(minAge: Int): Cursor
+          }
+          
+      ```
+
+      对于Cusor我也不是很清楚，网上找了相关描述
+
+      - Cursor 是每行的集合。
+      - 使用 moveToFirst() 定位第一行。
+      - 你必须知道每一列的名称。
+      - 你必须知道每一列的数据类型。
+      - Cursor 是一个随机的数据源。
+      - 所有的数据都是通过下标取得。
+
+      Google不是很推荐使用Cusor，除非你认为你的需求只有使用Cusor才能很好满足的时候。**使用前一定要三思**。
+
+    - 查询多个表格
+
+      以下代码段展示了如何执行表格联接以整合以下两个表格的信息：**一个表格包含当前借阅图书的用户，另一个表格包含当前处于已被借阅状态的图书的数据。**
+
+      ```kotlin
+       @Dao
+          interface MyDao {
+              @Query(
+                  "SELECT * FROM book " +
+                  "INNER JOIN loan ON loan.book_id = book.id " +
+                  "INNER JOIN user ON user.id = loan.user_id " +
+                  "WHERE user.name LIKE :userName"
+              )
+              fun findBooksBorrowedByNameSync(userName: String): List<Book>
+          }
+      ```
+
+      我也看不太懂，知道能在多个表查询即可。有需要的可以看看[这个](https://developer.android.google.cn/training/data-storage/room/accessing-data?hl=zh_cn#query-multiple-tables)（在此之前还是先学SQL吧）
+
+###### @Database
+
+
+
+RoomDatabase的标签。
+
+@Database中有5个值：
+
+entities，views，version，exportSchema，autoMigrations
+
+- entities
+
+  > 这个我们接触的也算比较多的，主要用于在数据库声明实体。
+
+- views
+
+  不是很懂，这个好像和一个视图数据库有些关系。
+
+- version
+
+  > 数据库**当前**的版本号
+
+- exportSchema
+
+  > 导出schema文件也就是Room结构文件。
+
+- autoMigrations
+
+  > **这个自动迁移是依靠schema文件的结构，所以exportSchema一定得是true**
+  >
+  > Room 2.3.0暂时用不了。
+  >
+  > ![image-20210726084416015](https://gitee.com/False_Mask/jetpack-demos-pics/raw/master/PicsAndGifs/image-20210726084416015.png)
+  >
+  > 得升级2.4.0 alpha才行
+  >
+  > ![image-20210726084456580](https://gitee.com/False_Mask/jetpack-demos-pics/raw/master/PicsAndGifs/image-20210726084456580.png)
+
+
+
+
+
+#### 4.Room进一步探究
+
+##### 1.Room 数据库的迁移
+
+[参考自](https://developer.android.google.cn/training/data-storage/room/migrating-db-versions)
+
+当您在应用中**添加和更改功能**（版本改变）时，需要**修改 Room 实体类**。但是，如果应用更新更改了数据库架构，我们如何将**之前版本的用户数据保存下来**就很重要。而这也是数据库迁移需要解决的问题。
+
+Room是**通过Migration类进行数据库版本的迁移**的，通过**重写Migration的migrate方法**实现数据库的迁移。以在运行时将数据库迁移到合适的版本。
+
+在此之前介绍一个东西，schema文件。schema文件是一个json文件，它包含了数据库的结构图。当进行版本迁移后它能很好的反映版本的变化情况。
+
+导出schema的设置默认是开着的，但是在build的时候程序并不知道schema文件放在哪，所以我们只需要将schema文件的存放地址生命就好了。（如果不打算导出schema记得给在@Database中加入exportSchema = false，不加这个也可以，程序可以运行。只不过在gradle build的过程中可能爆红，有点碍眼。）
+
+```groovy
+defaultConfig{
+    ......
+ 	javaCompileOptions {
+    	annotationProcessorOptions {
+        	arguments = ["room.schemaLocation": "$projectDir/schemas".toString()]
+    	}
+	}   
+    ......
+}
+```
+
+> 
+>
+> - 手动迁移
+>
+> Room 会从一个或多个 `Migration` 子类运行 `migrate()` 方法，以在运行时将数据库迁移到最新版本：
+>
+> 比如这样
+>
+> 有些烦人的是手动迁移需要和sql语句打交道，不太懂，欸。
+>
+> ```kotlin
+> val MIGRATION_1_2 = object : Migration(1, 2) {
+>     override fun migrate(database: SupportSQLiteDatabase) {
+>         database.execSQL("CREATE TABLE `Fruit` (`id` INTEGER, `name` TEXT, " +
+>                 "PRIMARY KEY(`id`))")
+>     }
+> }
+> 
+> val MIGRATION_2_3 = object : Migration(2, 3) {
+>     override fun migrate(database: SupportSQLiteDatabase) {
+>         database.execSQL("ALTER TABLE Book ADD COLUMN pub_year INTEGER")
+>     }
+> }
+> 
+> Room.databaseBuilder(applicationContext, MyDb::class.java, "database-name")
+>         .addMigrations(MIGRATION_1_2, MIGRATION_2_3).build()
+> ```
+>
+> - 自动迁移
+>
+>   我在看文档的时候我发现了一个很...的事情，[数据库迁移的文档](https://developer.android.google.cn/training/data-storage/room/migrating-db-versions)中文和英文版竟然不一样。中文少了一个自动迁移。
+>
+>   图片为证
+>
+>   ![image-20210724221522935](https://gitee.com/False_Mask/pics/raw/master/PicsAndGifs/image-20210724221522935.png)![image-20210724221548762](https://gitee.com/False_Mask/pics/raw/master/PicsAndGifs/image-20210724221548762.png)
+>
+>   这么说是不是之前看的文档是不是都可能少了点东西（雾。
+>
+>   淦中文文档更新滞留了......（暗示学英文。
+>
+>   ![image-20210724221939573](https://gitee.com/False_Mask/pics/raw/master/PicsAndGifs/image-20210724221939573.png)
+>
+>   ![image-20210724221921458](https://gitee.com/False_Mask/pics/raw/master/PicsAndGifs/image-20210724221921458.png)
+>
+>   **这告诉我们以后看文档还是稍微注意一下文档更新时间。如果是前几年更新的说不定少了点什么。。**
+>
+>   不扯了。其实自动迁移还只在测试版所以还可能出现一些变化，暂时只有英文文档上有相关介绍，有需要的兄弟可以去看看。由于是测试版我就不多讲了。（学了万一变更了呢 hh ）
+>
+>   ![image-20210724222743457](https://gitee.com/False_Mask/pics/raw/master/PicsAndGifs/image-20210724222743457.png)
+>
+>   在此稍微提一下，一般库的版本要经历三个阶段
+>
+>   alph，beta，stable(正式版)
+>
+>   alph -- 预览版，bug最多，可能存在比较大的变更。
+>
+>   beta -- 测试版，虽然经历了alph的阶段，但是仍然存在一些bug，但是通常情况下很少出现变更了，这时候就可以去学了。
+>
+>   stable -- 正式版，这个基本上bug就比较少了，内容就更小几率发生变更了。
+>
+> - 破坏性迁移
+>
+>   我们知道如果数据库版本变化但是程序又没有找到对应的迁移策略，那么就会抛出一个`IllegalStateException`。有的时候我们软件版本变化太大了，以至于数据库的结构发生了翻天覆地的变化，保留数据已近很困难了。那么就可以选择直接丢弃掉当前数据库里面的数据，让数据库版本进行升级。
+>
+>   让Room采用这种迁移方式很简单，只需要让它在Build的时候加入fallbackToDestructiveMigration()即可。
+>
+>   如下
+>
+>   ```kotlin
+>   Room.databaseBuilder(applicationContext, MyDb::class.java, "database-name")
+>           .fallbackToDestructiveMigration()
+>           .build()
+>   ```
+>
+>   注意：这个方法是用于没有定义迁移策略的时候调用，如果定义了就不会调用。
+>
+>   如果您只想让 Room **在特定情况下回退到破坏性重新创建**，可以使用 `fallbackToDestructiveMigration()` 的一些替代选项：
+>
+>   - 如果你想在某些版本的迁移中使用破坏性迁移，可以选用`fallbackToDestructiveMigrationFrom()`，此方法接受多个int参数，每个int表示进行破坏性迁移的版本值。比如某app在版本4到版本5变更巨大，采用破坏性迁移，那么只需往`fallbackToDestructiveMigrationFrom()`传入4即可。
+>   - 如果只有在高版本到低版本的时候进行破坏性迁移，那么就可以使用这个`fallbackToDestructiveMigrationOnDowngrade()`。
+>
+> - 特殊的迁移
+>
+>   **这种迁移是为了解决一个bug。**
+>
+>   在很多时候给参数加入默认值这是很常见的一个需求。但是在Room 2.2.0以前加入默认值的方式只有一种，那就是利用sql语句迁移的过程中添加一个。
+>
+>   不像在2.2.0以后可以直接使用`@ColumnInfo(defaultValue = "...")`
+>
+>   看下面一个实例。
+>
+>   
+>
+>   如果用户在版本1到版本2迁移过程中在数据表单中添加了一列并设置了默认值。
+>
+>   ```kotlin
+>   //版本1下的实体类 Room版本为2.1.0
+>   // Song Entity, DB Version 1, Room 2.1.0
+>   @Entity
+>   data class Song(
+>       @PrimaryKey
+>       val id: Long,
+>       val title: String
+>   )
+>   
+>   //版本2下的实体类 Room版本为2.1.0
+>   // Song Entity, DB Version 2, Room 2.1.0
+>   @Entity
+>   data class Song(
+>       @PrimaryKey
+>       val id: Long,
+>       val title: String,
+>       val tag: String // Added in version 2.
+>   )
+>   //从版本1迁移到版本2的策略
+>   // Migration from 1 to 2, Room 2.1.0
+>   val MIGRATION_1_2 = object : Migration(1, 2) {
+>       override fun migrate(database: SupportSQLiteDatabase) {
+>           //创建了新的一列‘tag’并设置默认值为‘’
+>           database.execSQL(
+>               "ALTER TABLE Song ADD COLUMN tag TEXT NOT NULL DEFAULT ''")
+>       }
+>   }
+>   ```
+>
+>   乍一看这代码是没有问题的。如果这样想：这个默认值是在数据库迁移的过程中进行设置的，但是如果不进行迁移呢？也就是说直接安装数据库版本号对应为2的软件。这样躲过了数据库的迁移，你会发现直接安装版本2的数据库没有设置默认值。而迁移的有默认值。这造成了数据库版本2的数据库结构不一致。但在2.2.0版本这并不会造成什么问题。
+>
+>   但但是，如果你在这个时候将Room升级到了2.3.0以及以上并使用了@CoumnInfo设置默认值就会导致架构验证错误。（可能会直接crash，不清楚没试过）
+>
+>   **所以为了让Room升级到2.3.0时的数据库结构一致。可以在之前的版本2上进行一次特殊的迁移。**
+>
+>   迁移需要完成一下3步
+>
+>   1. 使用 `@ColumnInfo` 注释在各自的实体类中声明列默认值。
+>   2. 将数据库版本号增加 1。
+>   3. 定义实现了[删除并重新创建策略](https://www.sqlite.org/lang_altertable.html#otheralter)的新版本迁移路径，将必要的默认值添加到现有列。
+>
+>   第一步是为了让直接安装版本3的数据库具有默认值。
+>
+>   第三步是为了保证迁移过程中将没有默认值的数据库转化成有默认值的数据库。
+>
+>   
+>
+>   第三步操作的代码如下
+>
+>   ```kotlin
+>   //迁移过程中先创建一个new_Song的数据表单，在创建过程中设置默认值。
+>   //然后将Song数据表单复制到new_Song中去。
+>   //最后删除Song表单将new_Song重命名为Song表单。
+>   
+>   // Migration from 2 to 3, Room 2.2.0
+>   val MIGRATION_2_3 = object : Migration(2, 3) {
+>       override fun migrate(database: SupportSQLiteDatabase) {
+>           database.execSQL("""
+>                   CREATE TABLE new_Song (
+>                       id INTEGER PRIMARY KEY NOT NULL,
+>                       name TEXT,
+>                       tag TEXT NOT NULL DEFAULT ''
+>                   )
+>                   """.trimIndent())
+>           database.execSQL("""
+>                   INSERT INTO new_Song (id, name, tag)
+>                   SELECT id, name, tag FROM Song
+>                   """.trimIndent())
+>           database.execSQL("DROP TABLE Song")
+>           database.execSQL("ALTER TABLE new_Song RENAME TO Song")
+>       }
+>   }
+>   ```
+>
+>   除此之外还有一种迁移，只不过和预填充数据库有些关系，就放在了预填充数据库哪里去了。
+
+
+
+
+
+##### 2.预填充数据库
+
+[参考自](https://developer.android.google.cn/training/data-storage/room/prepopulate)
+
+**有时，您可能希望应用启动时数据库中就已经加载了一组特定的数据。**这称为预填充数据库。在 **Room 2.2.0 及更高版本**中，您可以使用 API 方法在初始化时用设备文件系统中预封装的数据库文件中的内容预填充 Room 数据库。
+
+
+
+注意：缓存Room 数据库不支持使用 createFromAsset() 或 createFromFile() 预填充数据库。
+
+*缓存数据库就是创建在内存中的数据库，当程序退出数据库的资源全部回收。创建方法很简单，使用Room.inMemoryDatabaseBuilder()进行创建即可（创建方式与Room.databaseBuilder()基本上一致）*
+
+
+
+###### 从应用资源预填充
+
+
+
+`assets/`文件某种意义上来说也算是一个数据库的，这个问价夹是默认不创建的，需要我们自己创建。创建方式如下
+
+![image-20210725084732998](https://gitee.com/False_Mask/pics/raw/master/PicsAndGifs/image-20210725084732998.png)
+
+![image-20210725084756953](https://gitee.com/False_Mask/pics/raw/master/PicsAndGifs/image-20210725084756953.png)
+
+所以预填充数据库与他确实有亿点关系。
+
+
+
+> 如果你想从assets目录下读取文件并预填充数据库，那么可以在Room.databaseBuilder()调用build()前使用 createFromAsset()，该方法接收一个String,也就是预填充的文件在assets中的位置。
+>
+> 比如这样
+>
+> ```kotlin
+> Room.databaseBuilder(applicationContext,AppDatabase::class.java,
+>                 APP_DATABASE_NAME)
+>                 .createFromAsset("database/myapp.db")
+>                 .build()
+> ```
+>
+> **注意**：从某个资源预填充时，Room 会验证数据库，以便确保其架构与预封装数据库的架构相匹配。在创建预封装数据库文件时，您应[导出数据库的架构](https://developer.android.google.cn/training/data-storage/room/migrating-db-versions#export-schema)以作为参考。
+
+
+
+###### 从文件系统预填充
+
+> 如需从位于设备文件系统任意位置（应用的 assets/ 目录除外）的预封装数据库文件预填充 Room 数据库，请先从 RoomDatabase.Builder 对象调用 createFromFile() 方法，然后再调用 build()：
+>
+> ```kotlin
+> Room.databaseBuilder(appContext, AppDatabase.class, "Sample.db")
+>      .createFromFile(File("mypath"))
+>      .build()
+> ```
+>
+> 与前一个是类似的。
+>
+> 根据文档描述：预填充数据库是通过将预填充文件复制进自己app定义的数据库文件中，而不是直接使用预填充数据库的文件。所以是需要预填充文件的读取权限的。
+>
+> ![image-20210725095141341](https://gitee.com/False_Mask/pics/raw/master/PicsAndGifs/image-20210725095141341.png)
+>
+>  
+>
+> ![image-20210725095253679](https://gitee.com/False_Mask/pics/raw/master/PicsAndGifs/image-20210725095253679.png)
+
+
+
+###### 处理包含预封装数据库的迁移
+
+> 我们知道fallbackToDestructiveMigration()会直接销毁掉所有的数据。但是在破坏性迁移的同时我们还可以加上预填充，这样破坏性迁移以后会默认使用预填充填充数据库。
+>
+> 代码如下
+>
+> 这种情况下，在破坏性迁移以后会自动预填充。
+>
+> ```kotlin
+>  // Database class definition declaring version 3.
+>     @Database(version = 3)
+>     abstract class AppDatabase : RoomDatabase() {
+>         ...
+>     }
+> 
+>     // Destructive migrations are enabled and a prepackaged database
+>     // is provided.
+>     Room.databaseBuilder(appContext, AppDatabase.class, "Sample.db")
+>         .createFromAsset("database/myapp.db")
+>         .fallbackToDestructiveMigration()
+>         .build()
+> ```
+>
+> 但是这种情况下并不会。因为并不是破坏性迁移。
+>
+> ```kotlin
+>    // Database class definition declaring version 3.
+>     @Database(version = 3)
+>     abstract class AppDatabase : RoomDatabase() {
+>         ...
+>     }
+> 
+>     // Migration path definition from version 2 to version 3.
+>     val MIGRATION_2_3 = object : Migration(2, 3) {
+>         override fun migrate(database: SupportSQLiteDatabase) {
+>             ...
+>         }
+>     }
+> 
+>     // A prepackaged database is provided.
+>     Room.databaseBuilder(appContext, AppDatabase.class, "Sample.db")
+>         .createFromAsset("database/myapp.db")
+>         .addMigrations(MIGRATION_2_3)
+>         .build()
+> ```
+>
+> 
+>
+> 这个数据库的迁移会经历这样的步骤
+>
+> - 由于没有定义2_3的迁移方式，会启动破坏性迁移。又由于加入了预填充数据库，所以在破坏性迁移以后会启用预填充。
+> - 又由于加入了3_4的迁移，所以在预填充以后会加载3_4的迁移。
+> - 最后由于预填充会将预填充文件复制到app的数据库所以预填充文件得以保留。数据库版本变更到4
+>
+> ```kotlin
+> //Tips:当前数据库版本为2
+> // Database class definition declaring version 4.
+>     @Database(version = 4)
+>     abstract class AppDatabase : RoomDatabase() {
+>         ...
+>     }
+> 
+>     // Migration path definition from version 3 to version 4.
+>     val MIGRATION_3_4 = object : Migration(3, 4) {
+>         override fun migrate(database: SupportSQLiteDatabase) {
+>             ...
+>         }
+>     }
+> 
+>     // Destructive migrations are enabled and a prepackaged database is
+>     // provided.
+>     Room.databaseBuilder(appContext, AppDatabase.class, "Sample.db")
+>         .createFromAsset("database/myapp.db")
+>         .addMigrations(MIGRATION_3_4)
+>         .fallbackToDestructiveMigration()
+>         .build()
+> ```
+>
+
+
+
+##### 3.定义对象之间的关系
+
+参考自：
+
+[Google文档](https://developer.android.google.cn/training/data-storage/room/relationships?hl=zh_cn)
+
+[博客地址](https://medium.com/androiddevelopers/database-relations-with-room-544ab95e4542)
+
+
+
+由于 SQLite 是关系型数据库，因此您可以指定各个实体之间的关系。尽管大多数对象关系映射库**都允许实体对象互相引用**，但 **Room 明确禁止这样做**。如需了解此决策背后的技术原因，请参阅[了解 Room 为何不允许对象引用](https://developer.android.google.cn/training/data-storage/room/referencing-data?hl=zh_cn#understand-no-object-references)。（主要原因还是**性能问题**。）
+
+
+
+###### 创建嵌套对象
+
+
+
+> 有时，我们存在一种需求就是：将某个实体或数据对象在数据库逻辑中表示为一个紧密的整体。我们可以使用@Embedded实现。代码如下
+>
+> ```kotlin
+>   data class Address(
+>         val street: String?,
+>         val state: String?,
+>         val city: String?,
+>         @ColumnInfo(name = "post_code") val postCode: Int
+>     )
+> 
+>     @Entity
+>     data class User(
+>         @PrimaryKey val id: Int,
+>         val firstName: String?,
+>         @Embedded val address: Address?
+>     )
+>     
+> ```
+>
+> 这样`User`对象表中就包含`id`、`firstName`、`street`、`state`、`city` 和 `post_code`。
+>
+> 简单来讲就是：如果Room表单实体类和实体类之间如果存在这种嵌套的关系就得利用@Embeded，这样Room才知道这里存在嵌套关系，它才知道这里需要将Address展开。否者他就认为Address只是一个变量。
+>
+> **注意：嵌套字段还可以包含其他嵌套字段。**
+>
+> 为了避免@Embeded修饰的变量重复名，提供了@Embeded提供了一个参数prifix，prefix是前缀。上代码
+>
+> ```kotlin
+> @Embedded(prefix = "loc_")
+>    Coordinates coordinates;
+> ```
+>
+> 这样Coordianate变量在数据库里的实际名称就变成了loc_coordinates.
+>
+> 
+
+
+
+###### 定义一对一关系
+
+
+
+> Code Place 
+>
+> com/example/roomdemo/model/entity，
+>
+> com/example/roomdemo/db
+>
+> 
+>
+> 两个实体之间的一对一关系是指这样一种关系：父实体的每个实例都恰好对应于子实体的一个实例，反之亦然。
+>
+> ![image-20210726164528248](https://gitee.com/False_Mask/jetpack-demos-pics/raw/master/PicsAndGifs/image-20210726164528248.png)
+>
+> 假如我们生活在一个(悲伤的)世界，每个人只能拥有一条狗，并且每条狗也只能有一个主人。这就是一对一关系。为了在关系型数据库中 表示这一关系，我们创建了两张表，`Dog` 和 `Owner` 。在 Room 中，我们创建两个表
+>
+> ```kotlin
+> @Entity
+> data class Dog(
+>     @PrimaryKey val dogId: Long,
+>     val dogOwnerId: Long,
+>     val name: String,
+>     val cuteness: Int,
+>     val barkVolume: Int,
+>     val breed: String
+> )
+> 
+> @Entity
+> data class Owner(@PrimaryKey val ownerId: Long, val name: String)
+> ```
+>
+> 上述只是建立了实体了，但是还没有建立实体关系。
+>
+> 而建立实体关系需要在建立一个data class代码如下
+>
+> ```kotlin
+> data class DogAndOwnerOneToOne(
+>     @Embedded val owner: Owner,
+>     @Relation(
+>         parentColumn = "ownerId",
+>         entityColumn = "dogOwnerId"
+>     )
+>     val dog: Dog
+> )
+> ```
+>
+> 我们可以看出DogAndOwnerOneToOne中有**两个实体表对象的实例**。
+>
+> 并**通过@Relation建立了表单与表单的关系**。
+>
+> 在实体类中由于Dog具有dogOwnerId也即是说可以通过Dog在Sql中索引到Owner，但是Dog和Owner在对象引用的角度上来看是不存在引用关系的。我们称Dog和Owner具有逻辑关系。这种逻辑关系就是一对一关系**，其中通过Dog可以索引到Owner故又定义Dog为**子实体**，Owner为**父实体**。
+>
+> 
+>
+> 在回归到一对一关系的建立，
+>
+> - @Relation是作用于子实体的，也即是Dog。
+>
+> - parentColum是父实体的primaryKey对应的列的名称。
+> - entityColum是子实体中与父实体PrimaryKey相对的列的名称。
+>
+> 
+>
+> 最后我们还需要在Dao中的方法加上一个注解。
+>
+> `@Transaction`
+>
+> 这个注解是为了确保数据库操作的原子性。
+>
+> ```kotlin
+> @Transaction
+>     @Query("SELECT * FROM Owner")
+>     fun getDogAndOwnerOneToOne(): List<DogAndOwnerOneToOne>
+> ```
+>
+> 如果利用SQL来获取UserAndLibrary则需要经历以下步骤
+>
+> - SELECT * FROM Owner
+>
+>   匹配数据库中所有的Owner
+>
+> - SELECT * FROM Dog
+>       WHERE dogOwnerId IN (ownerId1, ownerId2, …)
+>
+> - 将第一步搜寻的Owner的id与Dog中的dogOwnerId 进行匹配
+>
+> - 最后映射成DogAndOwnerOneToOne对象返回
+
+
+
+###### 定义一对多关系
+
+> ![image-20210726164609656](https://gitee.com/False_Mask/jetpack-demos-pics/raw/master/PicsAndGifs/image-20210726164609656.png)
+>
+> 
+>
+> 两个实体之间的一对多关系是指这样一种关系：**父实体**的每个实例**对应**于**子实体的零个或多个实例**，但**子实体**的每个实例只能恰好对应于父实体的**一个实例**。
+>
+> **也就是说一个父实体对应多个子实体。**
+>
+> *一对多和一对一关系是类似的，主要的差别是关系的建立上。*
+>
+> 建立新的Relation
+>
+> ```kotlin
+> data class DogAndOwnerOneToMany(
+>     @Embedded
+>     val owner:Owner,
+> 
+>     @Relation(
+>         parentColumn = "ownerId",
+>         entityColumn = "dogOwnerId"
+>     )
+>     val dogs:List<Dog>
+> )
+> ```
+>
+> 差别也不是很大，dog变成dogs了其余好像都没变化。
+
+
+
+###### 定义多对多关系
+
+> ![image-20210726175324199](https://gitee.com/False_Mask/jetpack-demos-pics/raw/master/PicsAndGifs/image-20210726175324199.png)
+>
+> 
+>
+> 现在假设我们生活在一个完美的世界，**每个主人**可以拥有**多条狗**，**每条狗**也可以有**多个主人**。要对此关系进行建模，仅仅通过 `Dog` 表和 `Owner`表是不够的。由于一条狗可能有多个主人，所以同一个 `dogId` 可能需要多条数据，以匹配不同的主人。但是在 `Dog` 表中，`dogId` 是主键，我们不能插入多个 id 相同，主人不同的狗狗。为了解决这一问题，我们需要额外创建一个存储 `(dogId,ownerId)` 的 **关联表** (也称为**交叉引用表**) 。
+>
+> 主要差异还是关系建立上。
+>
+> 
+>
+> 那不简单。这样？
+>
+> ```kotlin
+> data class OwnersWithDogs(
+>      @Embedded val owners: List<Owner>,
+>      @Relation(
+>           parentColumn = "ownerId",
+>           entityColumn = "dogOwnerId"
+>      )
+>      val dogs: List<Dog>
+> )
+> ```
+>
+> 错的，这样创建没有任何意义。
+>
+> 你会发现owners和dogs都是独立的。
+>
+> 这样确认从表面上看是Owners to Dogs，但是这样的关系相互间无法引用，没有意义。所以多对多我们不采用这样的描述方式。
+>
+> 而是通过两个单多描述。
+>
+> ```kotlin
+> //一个Dog多个Owner
+> data class DogWithOwners(
+>     @Embedded
+>     val dog:Dog,
+>     @Relation(
+>         parentColumn = "dogId",
+>         entityColumn = "ownerId",
+>         associateBy = Junction(DogOwnerCrossRef::class)
+>     )
+>     val owner:List<Owner>
+> )
+> //一个Owner多个Dogs
+> data class OwnerWithDogs(
+>     @Embedded val owner: Owner,
+>     @Relation(
+>         parentColumn = "ownerId",
+>         entityColumn = "dogId",
+>         associateBy = Junction(DogOwnerCrossRef::class)
+>     )
+>     val dogs:List<Dog>
+> )
+> ```
+>
+> 除此之外还差一个关系表，关系表是用来存储这两个对象的逻辑关系的。（注意两个**一对多表**内都要通过associateBy引入关系表）
+>
+> ```kotlin
+> @Entity(primaryKeys = ["dogId","ownerId"])
+> data class DogOwnerCrossRef(
+>     val dogId:Long,
+>     val ownerId:Long
+> )
+> ```
+>
+> 最后在Dao里面声明两个查询方法
+>
+> ```kotlin
+> //many to many
+> @Transaction
+> @Query("select * from Owner")
+> fun getOwnerWithDogs():List<OwnerWithDogs>
+> 
+> @Transaction
+> @Query("select * from Dog")
+> fun getDogWithOwners():List<DogWithOwners>
+> ```
+>
+> 
+>
+> 如果我需要建立这样的关系
+>
+> | ownerId |   dogId    |
+> | :-----: | :--------: |
+> |    1    |    2，4    |
+> |    2    |  2，3，5   |
+> |    3    | 2，3，4，5 |
+>
+> ownerId为1的人，持有dogId为2，4两条狗。
+>
+> ownerId为.......
+>
+> ```kotlin
+> //将以下关系表插入即可。
+> dogeAndOwnerDao.insertRelationMap(
+>     DogOwnerCrossRef(4,1),
+>     DogOwnerCrossRef(2,2),
+>     DogOwnerCrossRef(3,2),
+>     DogOwnerCrossRef(5,2),
+>     DogOwnerCrossRef(2,3),
+>     DogOwnerCrossRef(3,3),
+>     DogOwnerCrossRef(4,3),
+>     DogOwnerCrossRef(5,3)
+> )
+> ```
+>
+> 然后在监听点击后查询
+>
+> ```kotlin
+> get_dog_and_owner.setOnClickListener {
+>     lifecycleScope.launch (Dispatchers.IO){
+>        
+>         val ownerWithDogs = dogeAndOwnerDao.getOwnerWithDogs()
+>         ownerWithDogs.forEach {
+>             Log.e(TAG, "getOwnerWithDogs $it" )
+>         }
+> 
+>         val dogWithOwners = dogeAndOwnerDao.getDogWithOwners()
+>         dogWithOwners.forEach{
+>             Log.e(TAG, "getDogWithOwners $it")
+>         }
+>     }
+> ```
+
+
+
+###### 多对多与单对多综合实例
+
+> 比如我们在做音乐播放器的时候，通常有这样的需求，查询用户的的所有歌单以及每个用户的歌单中包含的所有歌曲。
+>
+> 实体类如下
+>
+> ```kotlin
+> @Entity
+>     data class User(
+>         @PrimaryKey val userId: Long,
+>         val name: String,
+>         val age: Int
+>     )
+> 
+>     @Entity
+>     data class Playlist(
+>         @PrimaryKey val playlistId: Long,
+>         val userCreatorId: Long,
+>         val playlistName: String
+>     )
+> 
+>     @Entity
+>     data class Song(
+>         @PrimaryKey val songId: Long,
+>         val songName: String,
+>         val artist: String
+>     )
+> 
+>     @Entity(primaryKeys = ["playlistId", "songId"])
+>     data class PlaylistSongCrossRef(
+>         val playlistId: Long,
+>         val songId: Long
+>     )
+> ```
+>
+> 我们可以得知：
+>
+> - User和Playlist是一对多的关系。
+> - Playlist和Song是多对多的关系。
+>
+> 建立User和Playlist的关系
+>
+> ```kotlin
+>  data class PlaylistWithSongs(
+>         @Embedded val playlist: Playlist,
+>         @Relation(
+>              parentColumn = "playlistId",
+>              entityColumn = "songId",
+>              associateBy = @Junction(PlaylistSongCrossRef::class)
+>         )
+>         val songs: List<Song>
+>     )
+> ```
+>
+> 建立User和Playlist的关系。
+>
+> ```kotlin
+> data class UserWithPlaylistsAndSongs {
+>         @Embedded val user: User
+>         @Relation(
+>             entity = Playlist::class,
+>             parentColumn = "userId",
+>             entityColumn = "userCreatorId"
+>         )
+>         val playlists: List<PlaylistWithSongs>
+>     }
+> ```
+
+
+
+###### 总结
+
+- 上述的的方法皆是解决的Room**表单**中的**实体对象**关系建立的问题。
+
+  我们通常想到的对象关系就是引用，但是由于引用关系会多Room数据库造成性能问题，所以Room禁止，Room提倡使用注解的方式建立对象间的逻辑关系从而提高效率。
+
+- 建立关系一般有以下几步
+
+  - 在保持原有的**实体对象**不变的情况下，新创建一个用于描述实体类之间的关系的类。
+  - 在通过对新创建的关系类加入@Relation的注解描述关系。（如果是多对多关系还得再创建一个交叉引用表）
+  - 最后在Dao里面添加对应的查询语句。（别忘了@Transaction注解确保原子性）
+
+
+
+##### 4.对于复杂数据的处理
+
+> 之前的所有操作都是对简单的对象进行处理，比如Int，String，Long，Double，Float...这种。如果遇上复杂的对象类型（除基本数据类型和数组外的类型）Room其实是不认识的。
+>
+> 这就引入了另一个注解@TypeConverter
+>
+> 如果我们的Entity是这样的
+>
+> ```kotlin
+> @Entity
+> data class ConverterEntity(
+>     val data:Date
+> )
+> ```
+>
+> 当我们build的时候就会爆这样的错误。
+>
+> 因为Room不知道Date是个什么类型。它推荐我们使用@TypeConverter
+>
+> ![image-20210726233554373](https://gitee.com/False_Mask/jetpack-demos-pics/raw/master/PicsAndGifs/image-20210726233554373.png)
+>
+> 首先创建一个一个class，对方法加入@TypeConverter注解
+>
+> 由于Room只知道基本数据类型，如果我们传入复杂的类型也只能通过将其转化为基本数据类型进行存储。
+>
+> 加入@TypeConverter后Room会判断方法传入的变量和返回值。
+>
+> 比如dateToTimestamp  Room存储Date的时候就会自动调用**把Date转化为Long然后再存储**。
+>
+> 相似的fromTimestamp，Room会在取出过程中需要将**Long转化为Date**的时候**自动调用**。
+>
+> ```kotlin
+> class Converters {
+>    
+>     @TypeConverter
+>     fun fromTimestamp(value: Long?): Date? {
+>         return value?.let { Date(it) }
+>     }
+> 
+>     @TypeConverter
+>     fun dateToTimestamp(date: Date?): Long? {
+>         return date?.time?.toLong()
+>     }
+> }
+> ```
+>
+> 光这样还是不够的，还得把converter转载到Database中去。
+>
+> ```kotlin
+> @Database(version = 1,entities = [ConverterEntity::class])
+> @TypeConverters(Converters::class)
+> abstract class ConverterDatabase : RoomDatabase() {
+>     abstract fun getConverterDao():ConverterDao
+> 
+>     companion object{
+>         var instance:ConverterDatabase? = null
+>         @Synchronized
+>         fun getInstance(applicationContext:Context): ConverterDatabase {
+>             instance?.let {
+>                 return it
+>             }
+>             return Room.databaseBuilder(applicationContext,ConverterDatabase::class.java,
+>                 CONVERTER_DATA_BASE_NAME)
+>                 .build()
+>         }
+>     }
+> }
+> ```
+>
+> 
