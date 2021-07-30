@@ -9,6 +9,7 @@ import androidx.lifecycle.AndroidViewModel
  *@signature 我们不明前路，却已在路上
  */
 class DemoAndroidViewModel(application: Application) : AndroidViewModel(application) {
+
     val mApplication = getApplication<Application>()
 
 }

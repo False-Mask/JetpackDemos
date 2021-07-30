@@ -1,6 +1,7 @@
 package com.example.viewmodeldemo
 
 import android.content.Intent
+import android.content.res.Configuration
 import android.os.Bundle
 import android.os.PersistableBundle
 import androidx.activity.viewModels
@@ -15,15 +16,16 @@ class MainActivity : AppCompatActivity() {
     //懒加载ViewModel的实例
     //private val viewModel: MainViewModel by lazy { ViewModelProvider(this,ViewModelProvider.NewInstanceFactory()).get(MainViewModel::class.java) }
     //private val viewModel:MainViewModel by viewModels()
-
     private val viewModel:MainViewModel by viewModels{ SavedStateViewModelFactory(application,this) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
         /*savedInstanceState?.let {
             viewModel.number = (it.get("number") as String).toLong()
         }*/
+
         initView()
         setListener()
     }
@@ -57,4 +59,5 @@ class MainActivity : AppCompatActivity() {
         super.onSaveInstanceState(outState)
         outState.putString("number", show_number.text.toString())
     }*/
+
 }

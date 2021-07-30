@@ -19,6 +19,7 @@ class DemoFragment01 : Fragment() {
     //private val viewModel by lazy { ViewModelProvider(requireActivity()).get(SharedViewModel::class.java) }
     private val viewModel:SharedViewModel by activityViewModels()
 
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?

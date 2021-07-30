@@ -13,12 +13,15 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.navigation.NavDeepLinkBuilder
 import androidx.navigation.fragment.FragmentNavigatorExtras
 import androidx.navigation.fragment.findNavController
+import androidx.navigation.navGraphViewModels
 import androidx.navigation.ui.AppBarConfiguration
 import com.example.navigationdemo.R
 import com.example.navigationdemo.model.User
+import com.example.navigationdemo.ui.vm.TestViewModel
 import kotlinx.android.synthetic.main.fragment_demo01.*
 private const val TAG = "DemoFragment01"
 class DemoFragment01 : Fragment() {
+    //val viewModel:TestViewModel by navGraphViewModels(R.id.nav_demo)
     private var notificationId:Int = 0
     override fun onCreate(savedInstanceState: Bundle?) {
         //setHasOptionsMenu(false)
@@ -56,6 +59,7 @@ class DemoFragment01 : Fragment() {
             val action =
                 DemoFragment01Directions.actionDemoFragment01ToDemoFragment022(User("tr", 19))
             findNavController().navigate(action,extras)
+            listOf<User>()
         }
 
         deep_link_button.setOnClickListener {

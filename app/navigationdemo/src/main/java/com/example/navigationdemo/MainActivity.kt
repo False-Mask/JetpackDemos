@@ -9,26 +9,29 @@ import android.os.Bundle
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.lifecycle.ViewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavDeepLinkBuilder
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.onNavDestinationSelected
 import androidx.navigation.ui.setupWithNavController
+import com.example.navigationdemo.ui.vm.TestViewModel
 import kotlinx.android.synthetic.main.activity_main.*
 
 private const val TAG = "MainActivity"
 
 class MainActivity : AppCompatActivity() {
+
     private var notificationId:Int = 0
     private lateinit var navController:NavController
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
         //初始化NavController
         val navHostFragment =
             supportFragmentManager.findFragmentById(R.id.fragmentContainerView) as NavHostFragment
@@ -36,7 +39,6 @@ class MainActivity : AppCompatActivity() {
 
 
         Log.e(TAG, "$navController" )
-
 
         //让Toolbar替换掉Actionbar
         setSupportActionBar(toolbar)

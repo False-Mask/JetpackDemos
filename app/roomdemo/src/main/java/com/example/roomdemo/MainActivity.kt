@@ -66,7 +66,7 @@ class MainActivity : AppCompatActivity() {
                 )*/
                 val user = User("a","a")
                 val user2 = User("a","b")
-                var insertAll = userDao.insertAll(user,user2)
+                val insertAll = userDao.insertAll(user,user2)
                 insertAll.forEach{
                     Log.e(TAG, "insertAll $insertAll" )
                 }

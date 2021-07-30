@@ -1,4 +1,4 @@
-Jetpack
+# Jetpack
 
 ![img](https://i.loli.net/2021/07/20/OM42k9NuhpxfUTG.png)
 
@@ -72,9 +72,8 @@ Jetpack
 
 ![image-20210719110127880](https://i.loli.net/2021/07/20/XkwNftWE4epUzJL.png)
 
-> 借用google的一句话就是缓存数据的，当我的Activity发生配置变化时候会重新调用onCreate方法创建新的一个Activity的实例。这会导致屏幕内的
+> 借用google的一句话就是缓存数据的，当我的Activity发生**配置变化**时候会重新调用onCreate方法创建新的一个Activity的实例。这会导致屏幕内的数据丢失。这很不符合用户预想中的使用，所以通常情况下我们会通过 `onSaveInstanceState()`来保存并拯救丢失的数据。但是`onSaveInstanceState()`只可以序列化再反序列化的少量数据，而不适合数量可能较大的数据，所以它不太适合存储整个页面的数据。所以就有了ViewModel，**但ViewModel并不是`onSaveInstanceState()`的替代品**。
 >
-> 数据丢失。这很不符合用户预想中的使用，所以通常情况下我们会通过 `onSaveInstanceState()`来保存并拯救丢失的数据。但是`onSaveInstanceState()`只可以序列化再反序列化的少量数据，而不适合数量可能较大的数据，所以它不太适合存储整个页面的数据。所以就有了ViewModel，**但ViewModel并不是`onSaveInstanceState()`的替代品**。
 
 
 
@@ -160,13 +159,7 @@ class MainActivity : AppCompatActivity() {
 
 #### 3.ViewModel的进一步探究
 
-
-
-##### 1.ViewModel的实现原理
-
-这个还没想好。。
-
-##### 2.ViewModel的生命周期
+##### 1.ViewModel的生命周期
 
 ![image-20210719172024686](https://i.loli.net/2021/07/20/FSKdxCNgID9f2sO.png)
 
@@ -178,10 +171,10 @@ class MainActivity : AppCompatActivity() {
 
 总体来说
 
-- ***ViewModel依赖与Lifecycle组件。在Lifecycle组件利用ViewModelProvider创建ViewModel实例的时候建立联系，并在Lifecycle组件第一次调用onCreate时候创建ViewModel，在Lifecycle组件彻底凉透了再释放ViewModel内存。***
+- ***ViewModel依赖于Lifecycle组件。在Lifecycle组件利用ViewModelProvider创建ViewModel实例的时候建立联系，并在Lifecycle组件第一次调用onCreate时候创建ViewModel，在Lifecycle组件彻底凉透了再释放ViewModel内存。***
 - ***ViewModel的生命周期长于Activity。我们不能让ViewModel持有Lifecycle组件。否者会发生内存泄漏。***
 
-##### 3.ViewModel的种类
+##### 2.ViewModel的种类
 
 - 普通ViewModel
 
@@ -362,6 +355,12 @@ class DemoFragment02 : Fragment() {
 }
 ```
 
+我们在两个Fragment拿到的ViewModel和ViewModel的data的hashCode是一样的
+
+![image-20210730115133401](https://gitee.com/False_Mask/jetpack-demos-pics/raw/master/PicsAndGifs/image-20210730115133401.png)
+
+
+
 - 自定义构造器的ViewModel
 
   > 从之前的几种ViewModel中我们可以分成两类：
@@ -376,15 +375,19 @@ class DemoFragment02 : Fragment() {
   那不简单，这样嘛
 
   ```kotlin
+  //ViewModel
   class MyViewModel(val myData:Data):ViewModel()	
+  
+  //初始化
+  val viewModel = MyViewModel(myData)
   ```
 
   我竟无法反驳。
 
   值得注意的是当我们创建一个ViewModel的时候是利用的ViewModelProvider创建的，不是直接`MyViewModel(myData)`这样new出来，所以上述的方法貌似没什么用。
-
+  
   回归ViewModelProvider上看看
-
+  
   ```java
   public ViewModelProvider(@NonNull ViewModelStoreOwner owner, @NonNull Factory factory) {
       this(owner.getViewModelStore(), factory);
@@ -434,8 +437,8 @@ class CustomFactory:ViewModelProvider.Factory{
     //这个方法是ViewModel内部调用创建ViewModel实例的，所以它的任务就只是返回一个ViewModel,你怎么返回它并不关心。
     override fun <T : ViewModel?> create(modelClass: Class<T>): T {
         val data = DemoData(0,"data")
-        val customCustomViewModel = CustomViewModel(data)
-        return customCustomViewModel as T
+        val customViewModel = CustomViewModel(data)
+        return customViewModel as T
     }
 
 }
@@ -465,7 +468,7 @@ class CustomFactoryViewModelActivity : AppCompatActivity() {
 
 注意这个factory必须要传入的哦，不传入就会这样。
 
-![image-20210720082231895](https://gitee.com/False_Mask/jetpack-demos-pics/blob/master/PicsAndGifs/image-20210720082231895.png)
+![image-20210730123810325](https://gitee.com/False_Mask/jetpack-demos-pics/raw/master/PicsAndGifs/image-20210730123810325.png)
 
 
 
@@ -485,7 +488,7 @@ private val viewModel by lazy { ViewModelProvider(this).get(CustomViewModel::cla
 
 
 
-##### 4.ViewModel+Ktx扩展
+##### 3.ViewModel+Ktx扩展
 
 看看下面几个ViewModel的初始化方法。
 
@@ -531,7 +534,7 @@ private val viewModel:SharedViewModel by activityViewModels()
 
 
 
-##### 5.ViewModel失效了！
+##### 4.ViewModel失效了！
 
 > 每当我们使用ViewModel的时候我们总是认为：ViewModel一定能帮我们在任何情况下保存好界面的数据，然而真实情况是这样的吗？
 
@@ -539,27 +542,27 @@ private val viewModel:SharedViewModel by activityViewModels()
 
 - 打开设置面板
 
-  <img src="https://i.loli.net/2021/07/20/CEunFmt3QZoj1lL.jpg" alt="Screenshot_20210720_091652_com.android.settings" style="zoom:25%;" />
+  <img src="https://gitee.com/False_Mask/jetpack-demos-pics/raw/master/PicsAndGifs/Screenshot_20210730_144809_com.android.settings_LI.jpg" alt="Screenshot_20210730_144809_com.android.settings_LI" style="zoom:25%;" />
 
 - 选择开发者选项
 
-  <img src="https://i.loli.net/2021/07/20/2O8EPevHzmnkIsl.jpg" alt="Screenshot_20210720_091727_com.android.settings" style="zoom:25%;" />
+  <img src="https://gitee.com/False_Mask/jetpack-demos-pics/raw/master/PicsAndGifs/InkedScreenshot_20210730_144124_com.android.settings_LI.jpg" alt="InkedScreenshot_20210730_144124_com.android.settings_LI" style="zoom:25%;" />
 
-- 选择软件设置，勾选切入后台不保留activity
+- 选择应用设置，勾选切入后台不保留activity
 
-<img src="https://i.loli.net/2021/07/20/emA9dvPOUBlgs1W.jpg" alt="Screenshot_20210720_091557_com.android.settings" style="zoom:25%;" />
+<img src="https://gitee.com/False_Mask/jetpack-demos-pics/raw/master/PicsAndGifs/Screenshot_20210730_144144_com.android.settings_LI.jpg" alt="Screenshot_20210730_144144_com.android.settings_LI" style="zoom:25%;" />
 
 然后发生了很恐怖的事情，切入后台再回来，数据没了。
 
 效果图（GIF）
 
-<img src="https://i.loli.net/2021/07/20/v6OLbZWG2aNemUI.gif" alt="SVID_20210720_092410_1 00_00_00-00_00_30" style="zoom:25%;" />
+<img src="https://i.loli.net/2021/07/20/v6OLbZWG2aNemUI.gif" alt="SVID_20210720_092410_1 00_00_00-00_00_30" style="zoom: 50%;" />
 
-这是为什么，螈来是当打开开发者设置***不保留后台进程***之后，切入后台之后，Activity会直接被系统鲨了，并且不调用任何生命周期方法。连带着ViewModel都挂了，所以数据没法保存。还记得最早的时候说的：***ViewModel不是onSaveInstanceState的替代品吗***？<img src="C:\Users\Fool\AppData\Roaming\Typora\typora-user-images\image-20210720095422311.png" alt="image-20210720095422311" style="zoom: 50%;" />
+这是为什么，螈来是当打开开发者设置***不保留后台进程***之后，切入后台之后，Activity会直接被系统鲨了，**并且不调用任何生命周期方法**。连带着ViewModel都挂了，所以数据没法保存。还记得最早的时候说的：***ViewModel不是onSaveInstanceState的替代品吗***？<img src="C:\Users\Fool\AppData\Roaming\Typora\typora-user-images\image-20210720095422311.png" alt="image-20210720095422311" style="zoom: 50%;" />
 
-由于系统杀死Activity是不会调用任何什么周期方法的，但是这样会给用户造成“***这个软件是个垃圾***”的错觉。
+**系统杀死**Activity是不会调用任何什么周期方法的，那我们有什么方法能拯救那些数据🐎?
 
-所以在系统杀死Activity之前它留了一线生机。会调用onSaveInstanceState这回是你 恢复数据的希望。我们可以这样写。
+其实是有的，在系统杀死Activity之前它留了一线生机。会调用onSaveInstanceState这会是你 恢复数据的希望。我们可以这样写。
 
 > Code
 >
@@ -590,7 +593,7 @@ override fun onCreate(savedInstanceState: Bundle?) {
 
 效果图（GIF）
 
-<img src="https://gitee.com/False_Mask/jetpack-demos-pics/raw/master/PicsAndGifs/SVID_20210720_101730_1%2000_00_00-00_00_30.gif" alt="SVID_20210720_101730_1%2000_00_00-00_00_30.gif" style="zoom:25%;"/>
+![viewmodel_saved_state](https://gitee.com/False_Mask/jetpack-demos-pics/raw/master/PicsAndGifs/viewmodel_saved_state.gif)
 
 
 
@@ -662,9 +665,28 @@ class MainViewModel(private val savedStateHandle: SavedStateHandle) : ViewModel(
 private val viewModel:MainViewModel by viewModels{ SavedStateViewModelFactory(application,this) }
 ```
 
+注意这里的`SavedStateViewModelFactory`构造函数需要传入两个参数，一个Application，一个是`SavedStateRegistryOwner`。
+
+```java
+public SavedStateViewModelFactory(@Nullable  Application application,
+        @NonNull SavedStateRegistryOwner owner) 
 
 
-##### 6.ViewModel的使用建议
+```
+
+`ComponentActivity`和`Fragment`已近实现了`LifecycleOwner`，`ViewModelStoreOwner`，`SavedStateRegistryOwner`接口。
+
+其中`AppCompatActivity` 继承自 `FragmentActivity` 继承自 `ComponentActivity`
+
+![image-20210730152822239](https://gitee.com/False_Mask/jetpack-demos-pics/raw/master/PicsAndGifs/image-20210730152822239.png)
+
+
+
+![image-20210730152908468](https://gitee.com/False_Mask/jetpack-demos-pics/raw/master/PicsAndGifs/image-20210730152908468.png)
+
+
+
+##### 5.ViewModel的使用建议
 
 > *❌* Don’t let ViewModels (and Presenters) know about Android framework classes
 >
@@ -735,7 +757,7 @@ private val viewModel:MainViewModel by viewModels{ SavedStateViewModelFactory(ap
 >
 > ![](https://gitee.com/False_Mask/jetpack-demos-pics/raw/master/PicsAndGifs/image-20210720150037509.png)
 >
-> Remote和Local就不必说了，增添了一种In-memory cache（内存缓存）。说实话不是很了解，看看就好了。
+> Remote和Local就不必说了，增添了一种In-memory cache（内存缓存）。
 >
 > ***最后就是如果你有很多的并且差异很明显的数据，可以选择开辟更多的Repository.***
 
@@ -773,7 +795,7 @@ private val viewModel:MainViewModel by viewModels{ SavedStateViewModelFactory(ap
 >
 > ***我认为它想表达的意思是将Event进行封装。***
 >
-> 这个Event就是一些消费性事件，比如Snackbar弹窗，Toast，点击事件等这些不具有状态的消费性事件。
+> 这个Event就是一些消费性事件，比如Snackbar弹窗，Toast，点击事件等这些**不具有状态**的**消费性事件**。
 >
 > ***为什么要把它封装起来封装以后又放在哪？***
 >
@@ -1008,27 +1030,40 @@ private val viewModel:MainViewModel by viewModels{ SavedStateViewModelFactory(ap
 >
 > - **NavGrap**
 >
-> 这是一个XML资源，它描述了页面间的跳转关系，从哪里跳转到哪里，需要传入什么参数，跳转过程有什么动画等等。
+> 这是一个XML资源，它描述了页面间的**跳转关系**，从哪里跳转到哪里，需要传入什么参数，跳转过程有什么动画等等。
 >
 > - **NavHostFragment**
 >
-> NavHostFragment是一个特殊的Fragment。它是Fragment的容器，我们可以将NavGrap通过XML的形式引入到NavHostFragment中，然后NavHostFragment会呈现相应的页面。
+> NavHostFragment是一个特殊的**Fragment**。它是Fragment的容器，我们可以将NavGrap通过XML的形式引入到NavHostFragment中，然后NavHostFragment会**呈现相应的页面**。
 >
 > - **NavController**
 >
-> 从Controller可以看出它是一个用于管理的类，管理什么？管理页面的切换，管理NavHostFragment的视图呈现。
+> 从Controller可以看出它是一个用于管理的类，管理什么？管理**页面的切换**，管理NavHostFragment的视图呈现。
 
 
 
 > Navigation的优势
 >
 > - 处理 Fragment 事务。
+>
 > - 默认情况下，正确处理往返操作。
+>
 > - 为动画和转换提供标准化资源。
+>
 > - 实现和处理深层链接。
+>
 > - 包括导航界面模式（例如抽屉式导航栏和底部导航），用户只需完成极少的额外工作。
-> - [Safe Args](https://developer.android.google.cn/guide/navigation/navigation-pass-data?hl=zh_cn#Safe-args) - 可在目标之间导航和传递数据时提供类型安全的 Gradle 插件。
+>
+> - [Safe Args](https://developer.android.google.cn/guide/navigation/navigation-pass-data?hl=zh_cn#Safe-args) - 可在目标之间导航和传递数据时提供**类型安全**的 Gradle 插件。
+>
 > - `ViewModel` 支持 - 您可以将 `ViewModel` 的范围限定为导航图，以在图表的目标之间共享与界面相关的数据。
+>
+>   就是navGraphViewModels
+>
+>   ```kotlin
+>   //就像这样 这样的ViewModel的生命周期与传入的navGraph一种
+>   val viewModel:TestViewModel by navGraphViewModels(R.id.nav_demo)
+>   ```
 >
 > **此外，您还可以使用 Android Studio 的 [Navigation Editor](https://developer.android.google.cn/guide/navigation/navigation-getting-started?hl=zh_cn) 来查看和编辑导航图。**（应该没有人手打Navigation吧.haha）
 
@@ -1131,7 +1166,7 @@ private val viewModel:MainViewModel by viewModels{ SavedStateViewModelFactory(ap
 >
 > ![image-20210721110553481](https://gitee.com/False_Mask/jetpack-demos-pics/raw/master/PicsAndGifs/image-20210721110553481.png)
 >
-> 稍微改了一下Fragment
+> 稍微写了一下Fragment的界面
 >
 > ![image-20210721111945232](https://gitee.com/False_Mask/jetpack-demos-pics/raw/master/PicsAndGifs/image-20210721111945232.png)
 
@@ -1190,6 +1225,10 @@ private val viewModel:MainViewModel by viewModels{ SavedStateViewModelFactory(ap
 > public class NavHostFragment extends Fragment implements NavHost 
 > ```
 >
+> 我们可以通过`NavHostFragment`的name参数指定`NavHostFragment`。
+>
+> 于此同时使用fragment标签指定name参数的效果也是一样的。
+>
 > **所以就把NavHostFragment看成是一个特殊的Fragment吧。**
 >
 > - `android:name` 属性包含 `NavHost` 实现的类名称。<u>只要你使用的是NavHostFragment,就把NavHostFragment的包路径抄下来吧。</u>*androidx.navigation.fragment.NavHostFragment*
@@ -1217,9 +1256,11 @@ private val viewModel:MainViewModel by viewModels{ SavedStateViewModelFactory(ap
 >
 > - name 也就是当前组件的引用地址，好让NavGraph知道这是什么Fragment或者Activity......
 >
-> - label 我猜想是类似与Fragment Tag的东西吧，可以通过label获取对应组件的引用
+> - label 标签，在和顶部的Toolbar或者Actionbar进行联动的时候，Navigation会使用label的值作为其标题。
 >
->   ![image-20210721150210836](https://gitee.com/False_Mask/jetpack-demos-pics/raw/master/PicsAndGifs/image-20210721150210836.png)
+>   ![2021-07-30 171834](https://gitee.com/False_Mask/jetpack-demos-pics/raw/master/PicsAndGifs/2021-07-30%20171834.jpg)
+>   
+>   <img src="https://gitee.com/False_Mask/jetpack-demos-pics/raw/master/PicsAndGifs/Screenshot_20210730_171709_com.example.navigationdemo_LI.jpg" alt="Screenshot_20210730_171709_com.example.navigationdemo_LI" style="zoom: 33%;" />
 
 
 
@@ -1234,13 +1275,13 @@ private val viewModel:MainViewModel by viewModels{ SavedStateViewModelFactory(ap
 
 [参考自](https://developer.android.google.cn/guide/navigation/navigation-getting-started?hl=zh_cn#navigate)
 
-Tips：Navigation还可以导航到Activity，和导航Fragment是类似的，不懂可以看看参考文档。
+Tips：Navigation还可以导航到Activity，和导航Fragment是类似的，下面实例就不多讲Navigation在Activity之间的跳转,不懂可以看看参考文档。
 
 > 导航到目的地是使用 [NavController](https://developer.android.google.cn/reference/androidx/navigation/NavController?hl=zh_cn)完成的，它是一个在 `NavHost` 中管理应用导航的对象。每个 `NavHost` 均有自己的相应 `NavController`。您可以使用以下方法之一检索 `NavController`：
 >
 > 在Kotlin中可以直接使用findNavController()获取NavController![image-20210721153027725](https://gitee.com/False_Mask/jetpack-demos-pics/raw/master/PicsAndGifs/image-20210721153027725.png)
 >
-> 其中Activity的.findNavController其实是存在一定问题的。
+> 其中`Activity的.findNavController`其实是存在一定问题的。
 >
 > 如果直接传入”NavHostFragment“ 的id
 >
@@ -1252,7 +1293,7 @@ Tips：Navigation还可以导航到Activity，和导航Fragment是类似的，�
 >
 > ![image-20210721160919484](https://gitee.com/False_Mask/jetpack-demos-pics/raw/master/PicsAndGifs/image-20210721160919484.png)
 >
-> 说在Activity中找不到NavController
+> 说在Activity中**找不到NavController**
 >
 > 但是如果传入的id是这个
 >
@@ -1288,7 +1329,7 @@ Tips：这里也阉割了Activity的传参。
 
 [参考自](https://developer.android.google.cn/guide/navigation/navigation-pass-data?hl=zh_cn)
 
-> 依赖。
+> 依赖
 >
 > ```groovy
 > buildscript {
@@ -1506,6 +1547,8 @@ Tips：这里也阉割了Activity的传参。
 >
 > ***共享元素动画***
 >
+> 
+>
 > 这玩意不太好解释，还是上图
 >
 > 效果图(GIF)
@@ -1525,13 +1568,13 @@ Tips：这里也阉割了Activity的传参。
 > </transitionSet>
 > ```
 >
-> 这个比较通用就用这个了，还有其他的Transition资源
+> 这个比较通用就用这个了，还有其他的**Transition资源**
 >
-> 这里就不做多的阐述。有兴趣的可以下去自行看。
+> 这里就不做多的阐述。有兴趣的可以下去自行看[文档](https://developer.android.google.cn/guide/fragments/animate#set-transitions)。
 >
 > ![image-20210722194832363](https://gitee.com/False_Mask/jetpack-demos-pics/raw/master/PicsAndGifs/image-20210722194832363.png)
 >
-> **然后**在跳转的目的地的onCreate方法中设置sharedElementEnterTransition
+> **然后**在跳转的目的地的onCreate方法中**设置sharedElementEnterTransition**
 >
 > ```kotlin
 > override fun onCreate(savedInstanceState: Bundle?) {
@@ -1545,7 +1588,7 @@ Tips：这里也阉割了Activity的传参。
 >
 > ```kotlin
 > Navigator.Extrasdemo01_jump_button.setOnClickListener {
->   
+> 
 >     //创建Navigator.Extras
 >     val imageTransaction = Pair<View,String>(imageView,"demoImage")
 >     val extras = FragmentNavigatorExtras(imageTransaction)
@@ -1586,16 +1629,16 @@ Tips：这里也阉割了Activity的传参。
 >
 >   显式深层链接是深层链接的一个实例，该实例使用 `PendingIntent`将用户转到应用内的特定位置。例如，您可以在**通知或应用微件**中显示显式深层链接。
 >
->   比如在Fragment中发送一条Notification，Notifaction承载一个由Navigation创建的PendingIntent
+>   比如在Fragment中**发送一条Notification**，Notifaction承载一个由Navigation创建的PendingIntent
 >
 >   ```kotlin
->                   
+>   
 >   deep_link_button.setOnClickListener {
 >               val manager = NotificationManagerCompat.from(requireContext())
 >               manager.notify(notificationId++,createNotification())
->                   
+>   
 >           }
->                   
+>   
 >   //创建Notification
 >       private fun createNotification(): Notification {
 >           val notificationName = requireActivity().packageName
@@ -1604,11 +1647,11 @@ Tips：这里也阉割了Activity的传参。
 >                   notificationName, "DeepLinkChanner",
 >                   NotificationManager.IMPORTANCE_DEFAULT
 >               )
->                   
+>   
 >               val notificationManager =
 >                   requireActivity().getSystemService(NotificationManager::class.java)
 >               notificationManager.createNotificationChannel(channel)
->                   
+>   
 >           }
 >           return NotificationCompat.Builder(requireContext(), notificationName)
 >               .setSmallIcon(R.drawable.ic_launcher_foreground)
@@ -1618,27 +1661,33 @@ Tips：这里也阉割了Activity的传参。
 >               .setAutoCancel(true)
 >               .build()
 >       }
->   
->   
->       //创建一个PendingIntent
->       private fun getPendingIntent(): PendingIntent {
->           return NavDeepLinkBuilder(requireActivity())
->               .setGraph(R.navigation.nav_demo)
->                   //setComponentName感觉很鸡肋，又没太懂他是干啥的。
->               //.setComponentName(DeepLinkActivity::class.java)
->               .setDestination(R.id.deepLinkActivity)
->               .createPendingIntent()
->       }
->   ```
 >
->   Activity中进行DeepLink与此相似
+>
+> ```kotlin
+>   //创建一个PendingIntent
+>   private fun getPendingIntent(): PendingIntent {
+>       return NavDeepLinkBuilder(requireActivity())
+>           .setGraph(R.navigation.nav_demo)
+>           //.setComponentName感觉很鸡肋，又没太懂他是干啥的。
+>           //.setComponentName(DeepLinkActivity::class.java)
+>           .setDestination(R.id.deepLinkActivity)
+>           .createPendingIntent()
+>   }
+> ```
+> Activity中进行DeepLink与此相似
+>
+>  
+>
+>  
+>
+> 
 >
 >   代码在com/example/navigationdemo/MainActivity.kt中不做过多解释。
 >
->   总的来说DeepLink并没甚过人之处，它只是提供了PendingIntent。实际DeepLink的使用也就只有这点代码
+>   总的来说DeepLink并没甚过人之处，**它只是提供了PendingIntent**。实际DeepLink的使用也就只有这点代码
 >
 >   ```kotlin
->   NavDeepLinkBuilder(requireActivity())
+> NavDeepLinkBuilder(requireActivity())
 >       .setGraph(R.navigation.nav_demo)
 >       .setDestination(R.id.deepLinkActivity)
 >       .createPendingIntent()
@@ -1653,7 +1702,7 @@ Tips：这里也阉割了Activity的传参。
 >       .createPendingIntent()
 >   ```
 >
->   
+> 
 >
 > - 隐式的深层链接
 >
@@ -1685,16 +1734,16 @@ Tips：这里也阉割了Activity的传参。
 >   <!DOCTYPE html>
 >   <!DOCTYPE html>
 >   <html>
->                   
+>   
 >   <head>
 >       <title>跳转测试</title>
 >       <meta http-equiv="content-type" content="text/html">
 >   </head>
->                   
+>   
 >   <body>
 >   <a href="http://zhiqiangtu.com/1">点击跳转到app</a>
 >   </body>
->                   
+>   
 >   </html>
 >   ```
 >
@@ -1749,7 +1798,7 @@ Navigation 组件包含 `NavigationUI` 类。此类包含多种静态方法，�
 >
 > 导航按钮的行为会根据用户是否位于顶层目的地而变化。
 >
-> 顶层目的地是一组存在层次关系的目的地中的根级或最高级目的地。顶层目的地不会在顶部应用栏中显示“向上”按钮，因为不存在更高等级的目的地。默认情况下，应用的起始目的地是唯一的顶层目的地。
+> **顶层目的地**是一组存在层次关系的目的地中的根级或**最高级目的地**。顶层目的地不会在顶部应用栏中显示“向上”按钮，因为不存在更高等级的目的地。默认情况下，应用的起始目的地是唯一的顶层目的地。
 >
 > 当用户位于**顶层目的地时**，**如果目的地使用了** `DrawerLayout`，导航按钮会变为抽屉式导航栏图标 <img src="https://developer.android.google.cn/images/guide/navigation/drawer-icon.png?hl=zh_cn" alt="img" style="zoom:25%;" />。**如果目的地没有使用** `DrawerLayout`，**导航按钮处于隐藏状态**。当用户位于**任何其他目的地时**，导航按钮会显示为向上按钮 <img src="https://developer.android.google.cn/images/guide/navigation/up-button.png?hl=zh_cn" alt="img" style="zoom:25%;" />。在配置导航按钮时，如需将起始目的地用作唯一顶层目的地，请创建 `AppBarConfiguration` 对象并传入相应的导航图，如下所示
 >
@@ -1757,7 +1806,7 @@ Navigation 组件包含 `NavigationUI` 类。此类包含多种静态方法，�
 > val appBarConfiguration = AppBarConfiguration(navController.graph)
 > ```
 >
-> 在某些情况下，您可能需要定义多个顶层目的地，而不是使用默认的起始目的地。这种情况的一种常见用例是 `BottomNavigationView`，在此场景中，同级屏幕可能彼此之间并不存在层次关系，并且可能各自有一组相关的目的地。对于这样的情况，您可以改为将一组目的地 ID 传递给构造函数，如下所示：
+> 在某些情况下，您可能需要定义**多个顶层目的地**，而不是使用默认的起始目的地。这种情况的一种常见用例是 `BottomNavigationView`，在此场景中，同级屏幕可能彼此之间并不存在层次关系，并且可能各自有一组相关的目的地。对于这样的情况，您可以改为将一组目的地 ID 传递给构造函数，如下所示：
 >
 > ```kotlin
 > val appBarConfiguration = AppBarConfiguration(setOf(R.id.main, R.id.profile))
@@ -1843,7 +1892,7 @@ Navigation 组件包含 `NavigationUI` 类。此类包含多种静态方法，�
 > </androidx.drawerlayout.widget.DrawerLayout>
 > ```
 >
-> 也即是说如果使用DrawerLayout抽屉视图，那么根节点必须是DrawerLayout，DrawerLayout内包含两个View一个是主界面，一个是侧滑菜单。由于需要将侧滑菜单和Navigation关联，所以就使用了NavigationView。
+> 也即是说**如果使用DrawerLayout**抽屉视图，那么根节点必须是**DrawerLayout**，DrawerLayout内包含**两个View一个是主界面，一个是侧滑菜单**。由于需要将侧滑菜单**和Navigation关联**，所以就使用了**NavigationView**。
 >
 > 
 >
@@ -1913,7 +1962,7 @@ Navigation 组件包含 `NavigationUI` 类。此类包含多种静态方法，�
 
 [参考自](https://developer.android.google.cn/guide/navigation/navigation-ui?hl=zh_cn#bottom_navigation)
 
-> `NavigationUI` 也可以处理底部导航。当用户选择某个菜单项时，`NavController` 会调用 `onNavDestinationSelected()` 并自动更新底部导航栏中的所选项目。
+> `NavigationUI` 也可以处理**底部导航**。当用户选择某个菜单项时，`NavController` 会调用 `onNavDestinationSelected()` 并自动更新底部导航栏中的所选项目。
 >
 > 这个嘛还是那么简单。
 >
@@ -1949,7 +1998,7 @@ Navigation 组件包含 `NavigationUI` 类。此类包含多种静态方法，�
 >
 > <img src="https://gitee.com/False_Mask/jetpack-demos-pics/raw/master/PicsAndGifs/bottom_navigation.gif" alt="bottom_navigation" style="zoom:25%;" />
 >
-> 是不是有点奇怪。按道理 “第二页”，“第三页”的Fragment是和首页一样的顶层视图。也就是说它是不可以返回的，然鹅Toolbar确显示了回退按钮，这很奇怪。所以得为“第二页“，”第三页”加入到AppbarConfiguration的顶层视图的集合中。也就稍微改改AppbarConfiguration。
+> 是不是有点奇怪。按道理 “第二页”，“第三页”的Fragment是和"首页"一样的**顶层视图**。也就是说它是不可以返回的，然鹅Toolbar确显示了回退按钮，这很奇怪。所以得将“第二页“，”第三页”加入到AppbarConfiguration的顶层视图的集合中。也就稍微改改AppbarConfiguration。
 >
 > <img src="https://gitee.com/False_Mask/jetpack-demos-pics/raw/master/PicsAndGifs/Screenshot_20210723_202547_com.example.navigationdemo.jpg" alt="Screenshot_20210723_202547_com.example.navigationdemo" style="zoom:25%;" />
 >
@@ -1993,12 +2042,12 @@ Navigation 组件包含 `NavigationUI` 类。此类包含多种静态方法，�
 >   使用 `@Database`注释的类应满足以下条件：
 >
 >   - 是扩展 `RoomDatabase`的抽象类。
->   - 在注释中添加与数据库关联的实体列表。
+>   - 在注释中添加与数据库关联的**实体列表。**
 >   - 包含具有 0 个参数且返回使用 `@Dao`注释的类的抽象方法。
 >
 >   在运行时，您可以通过调用 `Room.databaseBuilder()`或 `Room.inMemoryDatabaseBuilder()` 获取 `Database`的实例。
 >
->   
+> 
 >
 > - [**Entity**](https://developer.android.google.cn/training/data-storage/room/defining-data)：表示数据库中的表。
 >
@@ -2006,11 +2055,11 @@ Navigation 组件包含 `NavigationUI` 类。此类包含多种静态方法，�
 >
 > 关于与数据库的访问。
 >
+> <img src="https://gitee.com/False_Mask/pics/raw/master/PicsAndGifs/room_architecture.png" alt="img" style="zoom: 50%;" />
+>
 > - 应用使用 Room 数据库来获取与该数据库关联的数据访问对象 (DAO)。
 > - 然后，应用使用每个 DAO 从数据库中获取实体，然后再将对这些实体的所有更改保存回数据库中。
-> -  最后，应用使用实体来获取和设置与数据库中的表列相对应的值。
->
-> <img src="https://gitee.com/False_Mask/pics/raw/master/PicsAndGifs/room_architecture.png" alt="img" style="zoom: 50%;" />
+> - 最后，应用使用实体来获取和设置与数据库中的表列相对应的值。
 >
 > **也就是说Room提供了DAO (Data Access  Objects)作为App和DataBase的中间人。**
 
@@ -2037,56 +2086,54 @@ Navigation 组件包含 `NavigationUI` 类。此类包含多种静态方法，�
 >       implementation("androidx.room:room-runtime:$room_version")
 >       //注解处理器
 >       annotationProcessor "androidx.room:room-compiler:$room_version"
->
->
 >       // To use Kotlin annotation processing tool (kapt)
->       //这个也是注解处理器只不过时kotlin-kapt
->       kapt("androidx.room:room-compiler:$room_version")
->       // To use Kotlin Symbolic Processing (KSP)
->       ksp("androidx.room:room-compiler:$room_version")
->     
->       // optional - Kotlin Extensions and Coroutines support for Room
->       implementation("androidx.room:room-ktx:$room_version")
->     
->       // optional - RxJava2 support for Room
->       implementation "androidx.room:room-rxjava2:$room_version"
->     
->       // optional - RxJava3 support for Room
->       implementation "androidx.room:room-rxjava3:$room_version"
->     
->       // optional - Guava support for Room, including Optional and ListenableFuture
->       implementation "androidx.room:room-guava:$room_version"
->     
->       // optional - Test helpers
->       testImplementation("androidx.room:room-testing:$room_version")
+>    	//这个也是注解处理器只不过时kotlin-kapt
+>     	kapt("androidx.room:room-compiler:$room_version")
+>     	// To use Kotlin Symbolic Processing (KSP) 类似于kapt速度快一些，不过暂时处于测试版
+>     	ksp("androidx.room:room-compiler:$room_version")
+>   
+>     	// optional - Kotlin Extensions and Coroutines support for Room
+>     	implementation("androidx.room:room-ktx:$room_version")
+>   
+>     	// optional - RxJava2 support for Room
+>     	implementation "androidx.room:room-rxjava2:$room_version"
+>   
+>     	// optional - RxJava3 support for Room
+>     	implementation "androidx.room:room-rxjava3:$room_version"
+>   
+>     	// optional - Guava support for Room, including Optional and ListenableFuture
+>     	implementation "androidx.room:room-guava:$room_version"
+>   
+>     	// optional - Test helpers
+>     	testImplementation("androidx.room:room-testing:$room_version")
 >   }
 >   ```
-> 
+>
 >   这里我就使用了两个必要的一个是运行时的一个是注解处理器。
-> 
+>
+>   ```groovy
+>     //如果使用kapt一定要加上，kotlin的注解处理插件都没kapt个锤锤。
+>     id 'kotlin-kapt'
+>   
+>     //room
+>     def room_version = "2.3.0"
+>     implementation("androidx.room:room-runtime:$room_version")
+>     // To use Kotlin annotation processing tool (kapt)
+>     kapt("androidx.room:room-compiler:$room_version")
 >   ```
->   	//如果使用kapt一定要加上，kotlin的注解处理插件都没kapt个锤锤。
->   	id 'kotlin-kapt'
->   	
->   	//room
->   	  def room_version = "2.3.0"
->   	  implementation("androidx.room:room-runtime:$room_version")
->   	  // To use Kotlin annotation processing tool (kapt)
->   	  kapt("androidx.room:room-compiler:$room_version")
->   ```
-> 
-> 
-> 
+>
 > - 创建实体类Entity
-> 
+>
 >   ```kotlin
 >   @Entity(tableName = "user_table")
->   data class User(
->       @PrimaryKey(autoGenerate = true) val uid: Int,
->       @ColumnInfo(name = "first_name") val firstName: String?,
->       @ColumnInfo(name = "last_name") val lastName: String?
->   )
+>     data class User(
+>         @PrimaryKey(autoGenerate = true) val uid: Int,
+>         @ColumnInfo(name = "first_name") val firstName: String?,
+>         @ColumnInfo(name = "last_name") val lastName: String?
+>     )
 >   ```
+>
+>   
 >
 >   其中PrimaryKey是主键，我们可以通过这个主键直接从数据库中查询到该数据。一个表单中必须要有主键（没有为什么。
 >
@@ -2144,11 +2191,11 @@ Navigation 组件包含 `NavigationUI` 类。此类包含多种静态方法，�
 >   
 >   }
 >   ```
->   
->     有一点需要注意这个Database是抽象类。代码也很简单。
->   
+>
+>     有一点需要注意这个Database是抽象类。除此之外我们在创建过程中有两中选择，一种是持久化的数据库，一种是缓存数据库。
+>
 >     然后就是在activity中使用（这代码写的有亿点烂。想必大家能懂意思。实际开发得用Google官方推荐的标准架构
->   
+>
 >   ​	<img src="https://gitee.com/False_Mask/jetpack-demos-pics/raw/master/PicsAndGifs/12972541-163a166f5f394065.png" alt="img" style="zoom: 50%;" />
 >
 >
@@ -2235,9 +2282,9 @@ Navigation 组件包含 `NavigationUI` 类。此类包含多种静态方法，�
 > ```kotlin
 > @Entity
 > data class User(
->   @PrimaryKey var id: Int,
->   var firstName: String?,
->   var lastName: String?
+> @PrimaryKey var id: Int,
+> var firstName: String?,
+> var lastName: String?
 > )
 > ```
 >
@@ -2251,13 +2298,9 @@ Navigation 组件包含 `NavigationUI` 类。此类包含多种静态方法，�
 >
 > 
 >
-> **注意**：实体可以具有空的构造函数（如果相应的 [DAO](https://developer.android.google.cn/training/data-storage/room/accessing-data) 类可以访问保留的每个字段），也可以具有其参数包含的类型和名称与该实体中字段的类型和名称匹配的构造函数。Room 还可以使用完整或部分构造函数，例如仅接收部分字段的构造函数。
->
-> 
->
 > - 主键PrimaryKey的使用
 >
->   **每个实体类至少要有一个主键**,主键可以通过对变量使用@PrimaryKey，于此同时还可以在中进行申明  @Entity(primaryKeys = arrayOf())（二选一即可）
+>   **每个实体类至少要有一个主键**,主键可以通过对变量使用@PrimaryKey，于此同时**还可以**在中进行申明  @Entity(primaryKeys = arrayOf())（二选一即可）
 >
 >   比如这样
 >
@@ -2267,7 +2310,7 @@ Navigation 组件包含 `NavigationUI` 类。此类包含多种静态方法，�
 >           val firstName: String?,
 >           val lastName: String?
 >       )
->   
+>
 >   ```
 >
 >   有的时候我们可能懒得自己去生成主键，但是我们可以让Room自动帮我们生成，使用@PrimaryKey(autoGenerate=true)即可。
@@ -2316,7 +2359,7 @@ Navigation 组件包含 `NavigationUI` 类。此类包含多种静态方法，�
 >   open class User {
 >           var picture: Bitmap? = null
 >       }
->   
+>
 >       @Entity(ignoredColumns = arrayOf("picture"))
 >       data class RemoteUser(
 >           @PrimaryKey val id: Int,
@@ -2387,7 +2430,7 @@ Navigation 组件包含 `NavigationUI` 类。此类包含多种静态方法，�
 
 ![image-20210725175833946](https://gitee.com/False_Mask/jetpack-demos-pics/raw/master/PicsAndGifs/image-20210725175833946.png)
 
-需要注意的是DAO是抽象的东西，它可以用接口写，其实用抽象类写也是可以的，他的实现是Room通过注解处理器自动生成的。（只不过通常都是用的接口写，可能代码稍微少一点，方法可以不写abstract）
+需要注意的是DAO是抽象的东西，它可以用接口写，其实用抽象类写也是可以的，他的实现是Room通过注解处理器自动生成的。（只不过通常都是用的接口写，可能**代码稍微少一点**，方法可以不写abstract）
 
 ```kotlin
 @Dao
@@ -2453,11 +2496,11 @@ abstract class UserDao {
     >
     > 上述方法了解就够了。通常情况下我们很少整那么多花样。一般要么插入一个实体类，要么插入一个集合。
     >
-    > @Insert标记的注解其实是可以有返回值的
+    > @Insert标记的注解其实是**可以有返回值的**
     >
     > ![image-20210725210243505](https://gitee.com/False_Mask/jetpack-demos-pics/raw/master/PicsAndGifs/image-20210725210243505.png)
     >
-    > 如果插入的参数是一个实体类放回值要么没有，要么就是Long，这个long的含义是SQL中的rawid
+    > 如果插入的参数是**一个实体类**放回值要么没有，要么就是Long，这个long的含义是SQL中的rawid
     >
     > 而SQL里面的rawid**好像是**INTEGER类型的PrimaryKey(因为Primarykey可以是SQL的TEXT类也就是String类)
     >
@@ -2613,7 +2656,7 @@ abstract class UserDao {
       ```kotlin
       @Dao
           interface MyDao {
-              //查询满足条件age大于传入阐述minAge的所有User
+              //查询满足条件age大于传入阐述minAge的所有User 
               @Query("SELECT * FROM user WHERE age > :minAge")
               fun loadAllUsersOlderThan(minAge: Int): Array<User>
           }
@@ -2793,7 +2836,8 @@ defaultConfig{
 > }
 > 
 > Room.databaseBuilder(applicationContext, MyDb::class.java, "database-name")
->         .addMigrations(MIGRATION_1_2, MIGRATION_2_3).build()
+>         .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+> 		.build()
 > ```
 >
 > - 自动迁移
@@ -2830,7 +2874,7 @@ defaultConfig{
 >
 > - 破坏性迁移
 >
->   我们知道如果数据库版本变化但是程序又没有找到对应的迁移策略，那么就会抛出一个`IllegalStateException`。有的时候我们软件版本变化太大了，以至于数据库的结构发生了翻天覆地的变化，保留数据已近很困难了。那么就可以选择直接丢弃掉当前数据库里面的数据，让数据库版本进行升级。
+>   我们知道如果数据库版本变化**但是程序又没有找到对应的迁移策略**，那么就会抛出一个`IllegalStateException`。有的时候我们软件版本变化太大了，以至于数据库的结构发生了翻天覆地的变化，保留数据已近很困难了。那么就可以选择直接丢弃掉当前数据库里面的数据，让数据库版本进行升级。
 >
 >   让Room采用这种迁移方式很简单，只需要让它在Build的时候加入fallbackToDestructiveMigration()即可。
 >
@@ -2842,7 +2886,7 @@ defaultConfig{
 >           .build()
 >   ```
 >
->   注意：这个方法是用于没有定义迁移策略的时候调用，如果定义了就不会调用。
+>   注意：这个方法是用于**没有定义迁移策略**的时候调用，如果定义了就不会调用。
 >
 >   如果您只想让 Room **在特定情况下回退到破坏性重新创建**，可以使用 `fallbackToDestructiveMigration()` 的一些替代选项：
 >
@@ -2859,7 +2903,7 @@ defaultConfig{
 >
 >   看下面一个实例。
 >
->   
+> 
 >
 >   如果用户在版本1到版本2迁移过程中在数据表单中添加了一列并设置了默认值。
 >
@@ -2872,7 +2916,7 @@ defaultConfig{
 >       val id: Long,
 >       val title: String
 >   )
->   
+> 
 >   //版本2下的实体类 Room版本为2.1.0
 >   // Song Entity, DB Version 2, Room 2.1.0
 >   @Entity
@@ -2893,11 +2937,11 @@ defaultConfig{
 >   }
 >   ```
 >
->   乍一看这代码是没有问题的。如果这样想：这个默认值是在数据库迁移的过程中进行设置的，但是如果不进行迁移呢？也就是说直接安装数据库版本号对应为2的软件。这样躲过了数据库的迁移，你会发现直接安装版本2的数据库没有设置默认值。而迁移的有默认值。这造成了数据库版本2的数据库结构不一致。但在2.2.0版本这并不会造成什么问题。
+>   乍一看这代码是没有问题的。如果这样想：这个默认值是在数据库**迁移的过程中**进行设置的，但是如果不进行迁移呢？也就是说直接安装数据库版本号对应为2的软件。这样躲过了数据库的迁移，你会发现直接安装版本2的数据库没有设置默认值。而迁移的有默认值。这造成了数据库版本2的数据库结构不一致。但在2.1.0版本这并不会造成什么问题。
 >
->   但但是，如果你在这个时候将Room升级到了2.3.0以及以上并使用了@CoumnInfo设置默认值就会导致架构验证错误。（可能会直接crash，不清楚没试过）
+>   但但是，如果你在这个时候将Room升级到了2.2.0以及以上并使用了@CoumnInfo设置默认值就会导致架构验证错误。（可能会直接crash，不清楚没试过）
 >
->   **所以为了让Room升级到2.3.0时的数据库结构一致。可以在之前的版本2上进行一次特殊的迁移。**
+>   **所以为了让Room升级到2.2.0时的数据库结构一致。可以在之前的版本2上进行一次特殊的迁移。**
 >
 >   迁移需要完成一下3步
 >
@@ -2909,7 +2953,7 @@ defaultConfig{
 >
 >   第三步是为了保证迁移过程中将没有默认值的数据库转化成有默认值的数据库。
 >
->   
+> 
 >
 >   第三步操作的代码如下
 >
@@ -2917,7 +2961,7 @@ defaultConfig{
 >   //迁移过程中先创建一个new_Song的数据表单，在创建过程中设置默认值。
 >   //然后将Song数据表单复制到new_Song中去。
 >   //最后删除Song表单将new_Song重命名为Song表单。
->   
+> 
 >   // Migration from 2 to 3, Room 2.2.0
 >   val MIGRATION_2_3 = object : Migration(2, 3) {
 >       override fun migrate(database: SupportSQLiteDatabase) {
@@ -2962,7 +3006,7 @@ defaultConfig{
 
 
 
-`assets/`文件某种意义上来说也算是一个数据库的，这个问价夹是默认不创建的，需要我们自己创建。创建方式如下
+`assets/`文件某种意义上来说也算是一个数据库的，这个文价夹是默认不创建的，需要我们自己创建。创建方式如下
 
 ![image-20210725084732998](https://gitee.com/False_Mask/pics/raw/master/PicsAndGifs/image-20210725084732998.png)
 
@@ -2999,7 +3043,7 @@ defaultConfig{
 >
 > 与前一个是类似的。
 >
-> 根据文档描述：预填充数据库是通过将预填充文件复制进自己app定义的数据库文件中，而不是直接使用预填充数据库的文件。所以是需要预填充文件的读取权限的。
+> 根据文档描述：预填充数据库是通过将预填充文件复制进自己app定义的数据库文件中，而不是直接使用预填充数据库的文件。所以是**需要预填充文件的读取权限的**。
 >
 > ![image-20210725095141341](https://gitee.com/False_Mask/pics/raw/master/PicsAndGifs/image-20210725095141341.png)
 >
@@ -3011,7 +3055,7 @@ defaultConfig{
 
 ###### 处理包含预封装数据库的迁移
 
-> 我们知道fallbackToDestructiveMigration()会直接销毁掉所有的数据。但是在破坏性迁移的同时我们还可以加上预填充，这样破坏性迁移以后会默认使用预填充填充数据库。
+> 我们知道fallbackToDestructiveMigration()会直接销毁掉所有的数据。**但是在破坏性迁移的同时我们还可以加上预填充**，这样破坏性迁移以后会默认使用预填充填充数据库。
 >
 > 代码如下
 >
@@ -3111,20 +3155,20 @@ defaultConfig{
 > 有时，我们存在一种需求就是：将某个实体或数据对象在数据库逻辑中表示为一个紧密的整体。我们可以使用@Embedded实现。代码如下
 >
 > ```kotlin
->   data class Address(
->         val street: String?,
->         val state: String?,
->         val city: String?,
->         @ColumnInfo(name = "post_code") val postCode: Int
->     )
+> data class Address(
+>      val street: String?,
+>      val state: String?,
+>      val city: String?,
+>      @ColumnInfo(name = "post_code") val postCode: Int
+>  )
 > 
->     @Entity
->     data class User(
->         @PrimaryKey val id: Int,
->         val firstName: String?,
->         @Embedded val address: Address?
->     )
->     
+>  @Entity
+>  data class User(
+>      @PrimaryKey val id: Int,
+>      val firstName: String?,
+>      @Embedded val address: Address?
+>  )
+> 
 > ```
 >
 > 这样`User`对象表中就包含`id`、`firstName`、`street`、`state`、`city` 和 `post_code`。
@@ -3133,16 +3177,15 @@ defaultConfig{
 >
 > **注意：嵌套字段还可以包含其他嵌套字段。**
 >
-> 为了避免@Embeded修饰的变量重复名，提供了@Embeded提供了一个参数prifix，prefix是前缀。上代码
+> 为了避免@Embeded修饰的变量重复名，提供了@Embeded提供了一个参数prefix，prefix是前缀。上代码
 >
 > ```kotlin
 > @Embedded(prefix = "loc_")
->    Coordinates coordinates;
+> Coordinates coordinates;
 > ```
 >
 > 这样Coordianate变量在数据库里的实际名称就变成了loc_coordinates.
 >
-> 
 
 
 
@@ -3162,7 +3205,7 @@ defaultConfig{
 >
 > ![image-20210726164528248](https://gitee.com/False_Mask/jetpack-demos-pics/raw/master/PicsAndGifs/image-20210726164528248.png)
 >
-> 假如我们生活在一个(悲伤的)世界，每个人只能拥有一条狗，并且每条狗也只能有一个主人。这就是一对一关系。为了在关系型数据库中 表示这一关系，我们创建了两张表，`Dog` 和 `Owner` 。在 Room 中，我们创建两个表
+> 假如我们生活在一个(悲伤的)世界，**每个人只能拥有一条狗，并且每条狗也只能有一个主人**。这就是一对一关系。为了在关系型数据库中 表示这一关系，我们创建了两张表，`Dog` 和 `Owner` 。在 Room 中，我们创建两个表
 >
 > ```kotlin
 > @Entity
@@ -3198,7 +3241,7 @@ defaultConfig{
 >
 > 并**通过@Relation建立了表单与表单的关系**。
 >
-> 在实体类中由于Dog具有dogOwnerId也即是说可以通过Dog在Sql中索引到Owner，但是Dog和Owner在对象引用的角度上来看是不存在引用关系的。我们称Dog和Owner具有逻辑关系。这种逻辑关系就是一对一关系**，其中通过Dog可以索引到Owner故又定义Dog为**子实体**，Owner为**父实体**。
+> 在实体类中由于Dog具有dogOwnerId也即是说可以**通过Dog在Sql中索引到Owner**，但是Dog和Owner在对象引用的角度上来看是不存在引用关系的。我们称Dog和Owner具有逻辑关系。这种逻辑关系就是一对一关系**，其中通过Dog可以索引到Owner故又定义Dog为**子实体**，Owner为**父实体。
 >
 > 
 >
@@ -3218,12 +3261,12 @@ defaultConfig{
 > 这个注解是为了确保数据库操作的原子性。
 >
 > ```kotlin
-> @Transaction
+> 	@Transaction
 >     @Query("SELECT * FROM Owner")
 >     fun getDogAndOwnerOneToOne(): List<DogAndOwnerOneToOne>
 > ```
 >
-> 如果利用SQL来获取UserAndLibrary则需要经历以下步骤
+> 如果利用SQL来获取DogAndOwnerOneToOne则需要经历以下步骤
 >
 > - SELECT * FROM Owner
 >
@@ -3232,15 +3275,15 @@ defaultConfig{
 > - SELECT * FROM Dog
 >       WHERE dogOwnerId IN (ownerId1, ownerId2, …)
 >
-> - 将第一步搜寻的Owner的id与Dog中的dogOwnerId 进行匹配
->
+>   将第一步搜寻的Owner的id与Dog中的dogOwnerId 进行匹配
+>  
 > - 最后映射成DogAndOwnerOneToOne对象返回
 
 
 
 ###### 定义一对多关系
 
-> ![image-20210726164609656](https://gitee.com/False_Mask/jetpack-demos-pics/raw/master/PicsAndGifs/image-20210726164609656.png)
+> ![image-20210730212553271](https://gitee.com/False_Mask/jetpack-demos-pics/raw/master/PicsAndGifs/image-20210730212553271.png)
 >
 > 
 >
@@ -3253,15 +3296,30 @@ defaultConfig{
 > 建立新的Relation
 >
 > ```kotlin
-> data class DogAndOwnerOneToMany(
->     @Embedded
->     val owner:Owner,
+> @Entity
+> data class Dog(
+>  @PrimaryKey val dogId: Long,
+>  val dogOwnerId: Long,
+>  val name: String,
+>  val cuteness: Int,
+>  val barkVolume: Int,
+>  val breed: String
+> )
 > 
->     @Relation(
->         parentColumn = "ownerId",
->         entityColumn = "dogOwnerId"
->     )
->     val dogs:List<Dog>
+> @Entity
+> data class Owner(@PrimaryKey val ownerId: Long, val name: String)
+> 
+> 
+> 
+> data class DogAndOwnerOneToMany(
+>  @Embedded
+>  val owner:Owner,
+> 
+>  @Relation(
+>      parentColumn = "ownerId",
+>      entityColumn = "dogOwnerId"
+>  )
+>  val dogs:List<Dog>
 > )
 > ```
 >
@@ -3550,4 +3608,4 @@ defaultConfig{
 > }
 > ```
 >
-> 
+

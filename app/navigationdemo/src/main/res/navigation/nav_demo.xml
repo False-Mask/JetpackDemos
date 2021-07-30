@@ -50,17 +50,17 @@
         app:uri="www.example.com" />
     <fragment
         android:id="@+id/drawerFragment01"
-        android:name="com.example.navigationdemo.ui.fragment.DrawerFragment01"
+        android:name="com.example.navigationdemo.ui.fragment.drawer.DrawerFragment01"
         android:label="fragment_drawer01"
         tools:layout="@layout/fragment_drawer01" />
     <fragment
         android:id="@+id/drawerFragment02"
-        android:name="com.example.navigationdemo.ui.fragment.DrawerFragment02"
+        android:name="com.example.navigationdemo.ui.fragment.drawer.DrawerFragment02"
         android:label="fragment_drawer02"
         tools:layout="@layout/fragment_drawer02" />
     <fragment
         android:id="@+id/drawerFragment03"
-        android:name="com.example.navigationdemo.ui.fragment.DrawerFragment03"
+        android:name="com.example.navigationdemo.ui.fragment.drawer.DrawerFragment03"
         android:label="fragment_drawer03"
         tools:layout="@layout/fragment_drawer03" />
     <fragment
